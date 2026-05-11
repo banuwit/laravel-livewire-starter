@@ -3,13 +3,14 @@
 @php $iconTrailing ??= $attributes->pluck('icon:trailing'); @endphp
 @php $iconVariant ??= $attributes->pluck('icon:variant'); @endphp
 
-@aware([ 'variant' ])
+@aware([ 'variant', 'compact' ])
 
 @props([
     'iconVariant' => 'outline',
     'iconTrailing' => null,
     'badgeColor' => null,
     'variant' => null,
+    'compact' => false,
     'iconDot' => null,
     'accent' => true,
     'square' => null,
@@ -25,12 +26,15 @@ $square ??= $slot->isEmpty();
 $iconClasses = Flux::classes($square ? 'size-6' : 'size-5');
 
 $classes = Flux::classes()
-    ->add('px-3 h-8 flex items-center rounded-lg')
+    ->add($compact ? 'px-2 h-8 text-xs flex items-center rounded-md' : 'px-3 h-8 flex items-center rounded-lg')
     ->add('relative') // This is here for the "active" bar at the bottom to be positioned correctly...
     ->add($square ? '' : 'px-2.5!')
     ->add('text-zinc-500 dark:text-white/80 ')
     // Styles for when this link is the "current" one...
-    ->add('data-current:after:absolute data-current:after:-bottom-3 data-current:after:inset-x-0 data-current:after:h-[2px]')
+    ->add($compact
+        ? 'data-current:after:absolute data-current:after:-bottom-1 data-current:after:inset-x-0 data-current:after:h-[2px]'
+        : 'data-current:after:absolute data-current:after:-bottom-3 data-current:after:inset-x-0 data-current:after:h-[2px]'
+    )
     ->add([
         '[--hover-fill:color-mix(in_oklab,_var(--color-accent-content),_transparent_90%)]',
 

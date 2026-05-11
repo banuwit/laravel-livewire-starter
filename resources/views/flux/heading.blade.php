@@ -8,13 +8,17 @@
 
 @php
 $classes = Flux::classes()
-    ->add('font-medium')
+    ->add(match ($size) {
+        'xl' => 'font-semibold tracking-tight',
+        'lg' => 'font-semibold',
+        default => 'font-medium',
+    })
     ->add(match ($accent) {
         true => 'text-[var(--color-accent-content)]',
         default => '[:where(&)]:text-zinc-800 [:where(&)]:dark:text-white',
     })
     ->add(match ($size) {
-        'xl' => 'text-2xl [&:has(+[data-flux-subheading])]:mb-2 [[data-flux-subheading]+&]:mt-2',
+        'xl' => 'text-2xl leading-tight [&:has(+[data-flux-subheading])]:mb-2 [[data-flux-subheading]+&]:mt-2',
         'lg' => 'text-base [&:has(+[data-flux-subheading])]:mb-2 [[data-flux-subheading]+&]:mt-2',
         default => 'text-sm [&:has(+[data-flux-subheading])]:mb-2 [[data-flux-subheading]+&]:mt-2',
     })

@@ -182,25 +182,32 @@ class MenuSeeder extends Seeder
             'users.view', 'users.create', 'users.edit', 'users.delete', 'users.assign_roles',
         ]);
 
-        $roles = $this->child('roles', 'Roles', 'lock-closed', $admin, 2, 'roles.index', 'roles.*');
+        $employees = $this->child('employees', 'Employees', 'identification', $admin, 2, 'employees.index', 'employees.*');
+        $this->attachPerms($employees, [
+            'employees.view', 'employees.create', 'employees.edit', 'employees.delete',
+        ]);
+
+        $companies = $this->child('companies', 'Companies', 'building-office', $admin, 3, 'companies.index', 'companies.*');
+        $this->attachPerms($companies, [
+            'companies.view', 'companies.create', 'companies.edit', 'companies.delete',
+        ]);
+
+        $branches = $this->child('branches', 'Branches', 'building-office-2', $admin, 4, 'branches.index', 'branches.*');
+        $this->attachPerms($branches, [
+            'branches.view', 'branches.create', 'branches.edit', 'branches.delete',
+        ]);
+
+        $roles = $this->child('roles', 'Roles', 'lock-closed', $admin, 5, 'roles.index', 'roles.*');
         $this->attachPerms($roles, [
             'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
         ]);
 
-        $menus = $this->child('menus', 'Menus', 'bars-3', $admin, 3, 'menus.index', 'menus.*');
+        $menus = $this->child('menus', 'Menus', 'bars-3', $admin, 6, 'menus.index', 'menus.*');
         $this->attachPerms($menus, [
             'menus.view', 'menus.create', 'menus.edit', 'menus.delete',
         ]);
 
-        // ---------- 9. Content ----------
-        $content = $this->group('content', 'Content', 'document-text', 91);
-
-        $posts = $this->child('posts', 'Posts', 'pencil-square', $content, 1, 'posts.index', 'posts.*');
-        $this->attachPerms($posts, [
-            'posts.view', 'posts.create', 'posts.edit', 'posts.delete',
-        ]);
-
-        // ---------- 10. Nav user ----------
+        // ---------- 9. Nav user ----------
         Menu::firstOrCreate(['slug' => 'my-profile'], [
             'name' => 'My Profile',
             'icon' => 'identification',

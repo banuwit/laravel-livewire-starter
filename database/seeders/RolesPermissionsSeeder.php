@@ -26,9 +26,9 @@ class RolesPermissionsSeeder extends Seeder
             'users'                  => [...$crud, 'assign_roles'],
             'roles'                  => $crud,
             'menus'                  => $crud,
-
-            // Content
-            'posts'                  => $crud,
+            'employees'              => $crud,
+            'companies'              => $crud,
+            'branches'               => $crud,
 
             // Sales
             'sales_quotations'       => [...$crud, 'approve'],
@@ -95,14 +95,14 @@ class RolesPermissionsSeeder extends Seeder
         Role::firstOrCreate(['name' => 'administrator', 'guard_name' => 'web'])
             ->givePermissionTo($permsFor([
                 'dashboard',
-                'users', 'roles', 'menus',
+                'users', 'roles', 'menus', 'employees', 'companies', 'branches',
                 'reports_sales', 'reports_purchasing', 'reports_inventory',
                 'reports_transaction', 'reports_crm', 'reports_financial',
             ]));
 
         Role::firstOrCreate(['name' => 'editor', 'guard_name' => 'web'])
             ->givePermissionTo($permsFor([
-                'dashboard', 'posts',
+                'dashboard',
             ]));
 
         Role::firstOrCreate(['name' => 'sales', 'guard_name' => 'web'])

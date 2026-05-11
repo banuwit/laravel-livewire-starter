@@ -13,50 +13,38 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'gender', 'phonenumber', 'religion', 'is_active', 'email', 'password', 'address', 'country_id', 'province_id', 'city_id'])]
+#[Fillable(['username', 'email', 'password', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
-    /**
-     * Get the user's initials
-     */
+    public function displayName(): string
+    {
+        return $this->employee?->name ?? $this->username;
+    }
+
     public function initials(): string
     {
-        return Str::of($this->name)
+        return Str::of($this->displayName())
             ->explode(' ')
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
-    public function country()
+    public function employee()
     {
-        return $this->belongsTo(Country::class);
-    }
-
-    public function province()
-    {
-        return $this->belongsTo(Province::class);
-    }
-
-    public function city()
-    {
-        return $this->belongsTo(City::class);
+        return $this->hasOne(Employee::class);
     }
 }

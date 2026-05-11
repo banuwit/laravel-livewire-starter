@@ -3,51 +3,26 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
         <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 
             <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
 
-            <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="newspaper" :href="route('posts.index')" :current="request()->routeIs('posts.*')" wire:navigate>
-                    {{ __('Posts') }}
-                </flux:navbar.item>
-            </flux:navbar>
-
             <flux:spacer />
-
-            <flux:navbar class="me-1.5 space-x-0.5 rtl:space-x-reverse py-0!">
-                <flux:tooltip :content="__('Search')" position="bottom">
-                    <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#" :label="__('Search')" />
-                </flux:tooltip>
-                <flux:tooltip :content="__('Repository')" position="bottom">
-                    <flux:navbar.item
-                        class="h-10 max-lg:hidden [&>div>svg]:size-5"
-                        icon="folder-git-2"
-                        href="https://github.com/laravel/livewire-starter-kit"
-                        target="_blank"
-                        :label="__('Repository')"
-                    />
-                </flux:tooltip>
-                <flux:tooltip :content="__('Documentation')" position="bottom">
-                    <flux:navbar.item
-                        class="h-10 max-lg:hidden [&>div>svg]:size-5"
-                        icon="book-open-text"
-                        href="https://laravel.com/docs/starter-kits#livewire"
-                        target="_blank"
-                        :label="__('Documentation')"
-                    />
-                </flux:tooltip>
-            </flux:navbar>
 
             <x-desktop-user-menu />
         </flux:header>
 
-        <!-- Mobile Menu -->
+        @php
+            $navMenus = \App\Models\Menu::with(['children.permissions', 'permissions'])
+                ->roots()
+                ->where('layout', 'sidebar')
+                ->where('is_active', true)
+                ->get();
+        @endphp
+
+        <!-- Mobile Sidebar -->
         <flux:sidebar collapsible="mobile" sticky class="lg:hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -55,25 +30,61 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')">
-                    <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="newspaper" :href="route('posts.index')" :current="request()->routeIs('posts.*')" wire:navigate>
-                        {{ __('Posts') }}
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
-            </flux:sidebar.nav>
-
-            <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
+                @foreach ($navMenus as $menu)
+                    @if ($menu->children->isNotEmpty())
+                        @php
+                            $isChildActive = $menu->children->contains(fn($c) =>
+                                $c->is_active && $c->route_pattern && request()->routeIs($c->route_pattern)
+                            );
+                        @endphp
+                        <flux:sidebar.group
+                            expandable
+                            :heading="$menu->name"
+                            :icon="$menu->icon ?? 'folder'"
+                            :expanded="$isChildActive"
+                        >
+                            @foreach ($menu->children->where('is_active', true) as $child)
+                                @php
+                                    $childPerm = $child->permissions->first();
+                                    $childHref = $child->route_name && \Illuminate\Support\Facades\Route::has($child->route_name)
+                                        ? route($child->route_name)
+                                        : '#';
+                                    $childCurrent = $child->route_pattern ? request()->routeIs($child->route_pattern) : false;
+                                @endphp
+                                @if ($childPerm)
+                                    @can($childPerm->name)
+                                        <flux:sidebar.item :href="$childHref" :current="$childCurrent" wire:navigate>
+                                            {{ $child->name }}
+                                        </flux:sidebar.item>
+                                    @endcan
+                                @else
+                                    <flux:sidebar.item :href="$childHref" :current="$childCurrent" wire:navigate>
+                                        {{ $child->name }}
+                                    </flux:sidebar.item>
+                                @endif
+                            @endforeach
+                        </flux:sidebar.group>
+                    @else
+                        @php
+                            $viewPerm = $menu->permissions->first();
+                            $rootHref = $menu->route_name && \Illuminate\Support\Facades\Route::has($menu->route_name)
+                                ? route($menu->route_name)
+                                : '#';
+                            $rootCurrent = $menu->route_pattern ? request()->routeIs($menu->route_pattern) : false;
+                        @endphp
+                        @if ($viewPerm)
+                            @can($viewPerm->name)
+                                <flux:sidebar.item :icon="$menu->icon" :href="$rootHref" :current="$rootCurrent" wire:navigate>
+                                    {{ $menu->name }}
+                                </flux:sidebar.item>
+                            @endcan
+                        @else
+                            <flux:sidebar.item :icon="$menu->icon" :href="$rootHref" :current="$rootCurrent" wire:navigate>
+                                {{ $menu->name }}
+                            </flux:sidebar.item>
+                        @endif
+                    @endif
+                @endforeach
             </flux:sidebar.nav>
         </flux:sidebar>
 

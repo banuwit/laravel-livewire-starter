@@ -2,17 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Branch;
+use App\Models\City;
+use App\Models\Company;
 use App\Models\Country;
 use App\Models\Province;
-use App\Models\City;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
@@ -23,27 +22,51 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
         ]);
 
-        // Get existing country, province, city ids
         $country = Country::first();
         $province = Province::first();
         $city = City::first();
 
-        User::factory()->create([
-            'name' => 'Banu Lite',
+        // Seed 1 company + branches
+        $company = Company::create([
+            'name' => 'PT Lite Indonesia',
+            'code' => 'LITE',
+            'phone' => '(021) 123-4567',
+            'email' => 'info@lite.id',
+            'address' => 'Jl. Sudirman No. 1, Jakarta Pusat',
+            'is_active' => true,
+        ]);
+
+        $branches = collect([
+            ['name' => 'Head Office', 'code' => 'HO', 'address' => 'Jl. Sudirman No. 1, Jakarta Pusat'],
+            ['name' => 'Branch Surabaya', 'code' => 'SBY', 'address' => 'Jl. Pemuda No. 15, Surabaya'],
+            ['name' => 'Branch Bandung', 'code' => 'BDG', 'address' => 'Jl. Asia Afrika No. 8, Bandung'],
+        ])->map(fn ($b) => $company->branches()->create(array_merge($b, ['is_active' => true])));
+
+        $superadmin = User::factory()->create([
+            'username' => 'banulite',
             'email' => 'banu@lite.id',
             'password' => 'testtest',
+            'is_active' => true,
+        ]);
+        $superadmin->employee()->create([
+            'company_id' => $company->id,
+            'branch_id' => $branches->first()->id,
+            'name' => 'Banu Lite',
             'gender' => 'male',
             'phonenumber' => '08123456789',
             'religion' => 'islam',
-            'is_active' => 'active',
             'country_id' => $country?->id ?? 1,
             'province_id' => $province?->id ?? 1,
             'city_id' => $city?->id ?? 1,
-        ])->assignRole('superadmin');
+            'is_active' => true,
+            'employee_type' => 'permanent',
+            'join_date' => '2020-01-01',
+        ]);
+        $superadmin->assignRole('superadmin');
 
-        User::factory(36)->create()
-            ->each(function ($user) {
-                $user->assignRole('staff');
-            });
+        User::factory(36)
+            ->withEmployee(['company_id' => $company->id, 'branch_id' => $branches->random()->id])
+            ->create()
+            ->each(fn ($user) => $user->assignRole('staff'));
     }
 }

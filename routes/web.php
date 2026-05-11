@@ -14,9 +14,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('users/{user}/edit', 'pages::users.edit')->middleware('permission:users.edit')->name('users.edit');
     Route::livewire('users/{user}/roles', 'pages::users.roles')->middleware('permission:users.assign_roles')->name('users.roles');
 
-    Route::livewire('posts', 'pages::posts.index')->name('posts.index');
-    Route::livewire('posts/create', 'pages::posts.create')->name('posts.create');
-    Route::livewire('posts/{post}/edit', 'pages::posts.edit')->name('posts.edit');
+    Route::livewire('employees', 'pages::employees.index')->middleware('permission:employees.view')->name('employees.index');
+    Route::livewire('employees/create', 'pages::employees.create')->middleware('permission:employees.create')->name('employees.create');
+    Route::livewire('employees/{employee}/edit', 'pages::employees.edit')->middleware('permission:employees.edit')->name('employees.edit');
+
+    Route::livewire('companies', 'pages::companies.index')->middleware('permission:companies.view')->name('companies.index');
+    Route::livewire('companies/create', 'pages::companies.create')->middleware('permission:companies.create')->name('companies.create');
+    Route::livewire('companies/{company}/edit', 'pages::companies.edit')->middleware('permission:companies.edit')->name('companies.edit');
+
+    Route::livewire('branches', 'pages::branches.index')->middleware('permission:branches.view')->name('branches.index');
+    Route::livewire('branches/create', 'pages::branches.create')->middleware('permission:branches.create')->name('branches.create');
+    Route::livewire('branches/{branch}/edit', 'pages::branches.edit')->middleware('permission:branches.edit')->name('branches.edit');
 
     Route::livewire('menus', 'pages::menus.index')->middleware('permission:menus.view')->name('menus.index');
     Route::livewire('menus/create', 'pages::menus.create')->middleware('permission:menus.create')->name('menus.create');

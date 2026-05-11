@@ -1,64 +1,128 @@
 <?php
 
+use App\Concerns\EmployeeValidationRules;
 use App\Concerns\ProfileValidationRules;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Province;
 use Flux\Flux;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Profile settings')] class extends Component {
-    use ProfileValidationRules;
+    use ProfileValidationRules, EmployeeValidationRules;
 
-    public string $name = '';
+    // Account section
+    public string $username = '';
     public string $email = '';
 
-    /**
-     * Mount the component.
-     */
+    // Employee section
+    public string $name = '';
+    public ?string $gender = null;
+    public ?string $phonenumber = null;
+    public ?string $religion = null;
+    public ?string $birth_place = null;
+    public ?string $birth_date = null;
+    public ?string $marital_status = null;
+    public ?string $address = null;
+    public ?int $country_id = null;
+    public ?int $province_id = null;
+    public ?int $city_id = null;
+    public bool $is_active = true;
+
+    public array $countries = [];
+    public array $provinces = [];
+    public array $cities = [];
+
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+        $this->username = $user->username;
+        $this->email = $user->email;
+
+        $this->countries = Country::orderBy('name')->get()->toArray();
+
+        if ($employee = $user->employee) {
+            $this->name = $employee->name;
+            $this->gender = $employee->gender;
+            $this->phonenumber = $employee->phonenumber;
+            $this->religion = $employee->religion;
+            $this->birth_place = $employee->birth_place;
+            $this->birth_date = $employee->birth_date?->format('Y-m-d');
+            $this->marital_status = $employee->marital_status;
+            $this->address = $employee->address;
+            $this->country_id = $employee->country_id;
+            $this->province_id = $employee->province_id;
+            $this->city_id = $employee->city_id;
+            $this->is_active = (bool) $employee->is_active;
+
+            $this->provinces = $this->country_id ? Province::where('country_id', $this->country_id)->orderBy('name')->get()->toArray() : [];
+            $this->cities = $this->province_id ? City::where('province_id', $this->province_id)->orderBy('name')->get()->toArray() : [];
+        }
     }
 
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
-    public function updateProfileInformation(): void
+    public function updatedCountryId($value): void
+    {
+        $this->province_id = null;
+        $this->city_id = null;
+        $this->provinces = $value ? Province::where('country_id', $value)->orderBy('name')->get()->toArray() : [];
+        $this->cities = [];
+    }
+
+    public function updatedProvinceId($value): void
+    {
+        $this->city_id = null;
+        $this->cities = $value ? City::where('province_id', $value)->orderBy('name')->get()->toArray() : [];
+    }
+
+    public function updateAccount(): void
     {
         $user = Auth::user();
-
-        $validated = $this->validate($this->profileRules($user->id));
+        $validated = $this->validate($this->accountRules($user->id));
 
         $user->fill($validated);
-
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
-
         $user->save();
 
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        Flux::toast(variant: 'success', text: __('Account updated.'));
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
+    public function updateEmployee(): void
+    {
+        $validated = $this->validate($this->employeeRules());
+
+        $user = Auth::user();
+        if (! $user->employee) {
+            return;
+        }
+        $user->employee->update($validated);
+
+        Flux::toast(variant: 'success', text: __('Employee profile updated.'));
+    }
+
     public function resendVerificationNotification(): void
     {
         $user = Auth::user();
 
         if ($user->hasVerifiedEmail()) {
             $this->redirectIntended(default: route('dashboard', absolute: false));
-
             return;
         }
 
         $user->sendEmailVerificationNotification();
 
         Flux::toast(text: __('A new verification link has been sent to your email address.'));
+    }
+
+    #[Computed]
+    public function hasEmployee(): bool
+    {
+        return Auth::user()->employee !== null;
     }
 
     #[Computed]
@@ -80,35 +144,120 @@ new #[Title('Profile settings')] class extends Component {
 
     <flux:heading class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
-    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
-        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Manage your account credentials and employee data')">
+        {{-- Section A: Account --}}
+        <div class="my-6 w-full">
+            <flux:heading size="lg">{{ __('Account') }}</flux:heading>
+            <flux:text variant="muted" size="sm">{{ __('Your login credentials.') }}</flux:text>
 
-            <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+            <form wire:submit="updateAccount" class="mt-4 space-y-6">
+                <flux:input wire:model="username" :label="__('Username')" type="text" required autocomplete="username" />
 
-                @if ($this->hasUnverifiedEmail)
-                    <div>
+                <div>
+                    <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+
+                    @if ($this->hasUnverifiedEmail)
                         <flux:text class="mt-4">
                             {{ __('Your email address is unverified.') }}
-
                             <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
                                 {{ __('Click here to re-send the verification email.') }}
                             </flux:link>
                         </flux:text>
+                    @endif
+                </div>
 
-                    </div>
-                @endif
-            </div>
-
-            <div class="flex items-center gap-4">
-                <flux:button variant="primary" type="submit" data-test="update-profile-button">
-                    {{ __('Save') }}
+                <flux:button variant="primary" type="submit" data-test="update-account-button">
+                    {{ __('Save account') }}
                 </flux:button>
-            </div>
-        </form>
+            </form>
+        </div>
+
+        <flux:separator class="my-6" />
+
+        {{-- Section B: Employee --}}
+        <div class="w-full">
+            <flux:heading size="lg">{{ __('Employee Profile') }}</flux:heading>
+            <flux:text variant="muted" size="sm">{{ __('Personal data linked to your employee record.') }}</flux:text>
+
+            @if ($this->hasEmployee)
+                <form wire:submit="updateEmployee" class="mt-4 space-y-6">
+                    <flux:input wire:model="name" :label="__('Full Name')" required />
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <flux:select wire:model="gender" variant="listbox" :label="__('Gender')" clearable :placeholder="__('Choose gender')">
+                            <flux:select.option value="male">Male</flux:select.option>
+                            <flux:select.option value="female">Female</flux:select.option>
+                        </flux:select>
+                        <flux:input wire:model="phonenumber" type="tel" :label="__('Phone Number')" icon="phone" />
+                    </div>
+
+                    <flux:select wire:model="religion" variant="listbox" :label="__('Religion')" searchable clearable :placeholder="__('Choose religion')">
+                        <flux:select.option value="islam">Islam</flux:select.option>
+                        <flux:select.option value="kristen">Christian</flux:select.option>
+                        <flux:select.option value="hindu">Hindu</flux:select.option>
+                        <flux:select.option value="buddhist">Buddhist</flux:select.option>
+                        <flux:select.option value="other">Other</flux:select.option>
+                    </flux:select>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <flux:select wire:model="marital_status" variant="listbox" :label="__('Marital Status')" clearable :placeholder="__('Choose status')">
+                            <flux:select.option value="single">Single</flux:select.option>
+                            <flux:select.option value="married">Married</flux:select.option>
+                            <flux:select.option value="divorced">Divorced</flux:select.option>
+                            <flux:select.option value="widowed">Widowed</flux:select.option>
+                        </flux:select>
+                        <flux:input wire:model="birth_place" :label="__('Birth Place')" :placeholder="__('City of birth')" />
+                        <flux:input wire:model="birth_date" type="date" :label="__('Birth Date')" />
+                    </div>
+
+                    <flux:textarea wire:model="address" :label="__('Address')" :placeholder="__('Street, building, etc.')" rows="2" />
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <flux:select wire:model.live="country_id" variant="listbox" :label="__('Country')" searchable clearable :placeholder="__('Choose country')">
+                            @foreach ($countries as $country)
+                                <flux:select.option value="{{ $country['id'] }}">{{ $country['name'] }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:select wire:model.live="province_id" variant="listbox" :label="__('Province')" searchable clearable :disabled="!$country_id" :placeholder="__('Choose province')">
+                            @foreach ($provinces as $province)
+                                <flux:select.option value="{{ $province['id'] }}">{{ $province['name'] }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:select wire:model="city_id" variant="listbox" :label="__('City')" searchable clearable :disabled="!$province_id" :placeholder="__('Choose city')">
+                            @foreach ($cities as $city)
+                                <flux:select.option value="{{ $city['id'] }}">{{ $city['name'] }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+
+                    @if(Auth::user()->employee?->company || Auth::user()->employee?->branch)
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <flux:label>{{ __('Company') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">{{ Auth::user()->employee->company?->name ?? '—' }}</flux:text>
+                        </div>
+                        <div>
+                            <flux:label>{{ __('Branch') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">{{ Auth::user()->employee->branch?->name ?? '—' }}</flux:text>
+                        </div>
+                    </div>
+                    @endif
+
+                    <flux:button variant="primary" type="submit" data-test="update-employee-button">
+                        {{ __('Save employee profile') }}
+                    </flux:button>
+                </form>
+            @else
+                <div class="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 py-12">
+                    <flux:icon.identification class="size-16 text-zinc-300 dark:text-zinc-600" />
+                    <flux:heading size="md">{{ __('No employee data') }}</flux:heading>
+                    <flux:text variant="muted" size="sm">{{ __('Your account is not linked to an employee record yet.') }}</flux:text>
+                </div>
+            @endif
+        </div>
 
         @if ($this->showDeleteUser)
+            <flux:separator class="my-6" />
             <livewire:pages::settings.delete-user-form />
         @endif
     </x-pages::settings.layout>

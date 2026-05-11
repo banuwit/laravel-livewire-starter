@@ -4,36 +4,22 @@ use App\Models\Branch;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
+use App\Models\Employee;
 use App\Models\Province;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 new class extends Component {
-    // Account
-    #[Validate('required|string|alpha_dash|max:255|unique:users,username')]
-    public string $username = '';
-
-    #[Validate('required|string|email|max:255|unique:users,email')]
-    public string $email = '';
-
-    #[Validate('required|string|min:8|confirmed')]
-    public string $password = '';
-
-    public string $password_confirmation = '';
-
-    #[Validate('boolean')]
-    public bool $is_active = true;
-
-    // Employee — Identity
+    // Identity
     #[Validate('required|string|max:255')]
     public string $name = '';
 
     #[Validate('nullable|string|max:50|unique:employees,employee_number')]
     public ?string $employee_number = null;
+
+    #[Validate('nullable|exists:users,id|unique:employees,user_id')]
+    public ?int $user_id = null;
 
     #[Validate('nullable|in:male,female')]
     public ?string $gender = null;
@@ -56,7 +42,7 @@ new class extends Component {
     #[Validate('nullable|string|max:500')]
     public ?string $address = null;
 
-    // Employee — Location
+    // Location
     #[Validate('nullable|exists:countries,id')]
     public ?int $country_id = null;
 
@@ -66,7 +52,7 @@ new class extends Component {
     #[Validate('nullable|exists:cities,id')]
     public ?int $city_id = null;
 
-    // Employee — Employment
+    // Employment
     #[Validate('required|exists:companies,id')]
     public ?int $company_id = null;
 
@@ -74,7 +60,7 @@ new class extends Component {
     public ?int $branch_id = null;
 
     #[Validate('boolean')]
-    public bool $employee_is_active = true;
+    public bool $is_active = true;
 
     #[Validate('nullable|in:permanent,contract,intern,parttime')]
     public ?string $employee_type = null;
@@ -85,21 +71,22 @@ new class extends Component {
     #[Validate('nullable|date|after_or_equal:join_date')]
     public ?string $end_date = null;
 
-    #[Validate('nullable|exists:roles,id')]
-    public ?int $selectedRole = null;
-
     public array $countries = [];
     public array $provinces = [];
     public array $cities = [];
+    public array $availableUsers = [];
     public array $companies = [];
     public array $branches = [];
-    public array $allRoles = [];
 
     public function mount()
     {
         $this->countries = Country::orderBy('name')->get()->toArray();
         $this->companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
-        $this->allRoles = Role::whereNotIn('name', ['superadmin'])->select('id', 'name')->get()->toArray();
+        $this->availableUsers = User::query()
+            ->whereDoesntHave('employee')
+            ->orderBy('username')
+            ->get(['id', 'username', 'email'])
+            ->toArray();
     }
 
     public function updatedCompanyId($value): void
@@ -126,83 +113,50 @@ new class extends Component {
     {
         $this->validate();
 
-        DB::transaction(function () {
-            $newUser = User::create([
-                'username' => $this->username,
-                'email' => $this->email,
-                'password' => Hash::make($this->password),
-                'is_active' => $this->is_active,
-            ]);
+        Employee::create([
+            'user_id' => $this->user_id,
+            'company_id' => $this->company_id,
+            'branch_id' => $this->branch_id,
+            'employee_number' => $this->employee_number,
+            'name' => $this->name,
+            'gender' => $this->gender,
+            'phonenumber' => $this->phonenumber,
+            'religion' => $this->religion,
+            'birth_place' => $this->birth_place,
+            'birth_date' => $this->birth_date,
+            'marital_status' => $this->marital_status,
+            'address' => $this->address,
+            'country_id' => $this->country_id,
+            'province_id' => $this->province_id,
+            'city_id' => $this->city_id,
+            'is_active' => $this->is_active,
+            'employee_type' => $this->employee_type,
+            'join_date' => $this->join_date,
+            'end_date' => $this->end_date,
+        ]);
 
-            $newUser->employee()->create([
-                'company_id' => $this->company_id,
-                'branch_id' => $this->branch_id,
-                'employee_number' => $this->employee_number,
-                'name' => $this->name,
-                'gender' => $this->gender,
-                'phonenumber' => $this->phonenumber,
-                'religion' => $this->religion,
-                'birth_place' => $this->birth_place,
-                'birth_date' => $this->birth_date,
-                'marital_status' => $this->marital_status,
-                'address' => $this->address,
-                'country_id' => $this->country_id,
-                'province_id' => $this->province_id,
-                'city_id' => $this->city_id,
-                'is_active' => $this->employee_is_active,
-                'employee_type' => $this->employee_type,
-                'join_date' => $this->join_date,
-                'end_date' => $this->end_date,
-            ]);
-
-            if ($this->selectedRole) {
-                $role = Role::find($this->selectedRole);
-                if ($role) {
-                    $newUser->assignRole($role);
-                }
-            }
-        });
-
-        session()->flash('success', 'User created successfully.');
-        $this->redirectRoute('users.index', navigate: true);
+        session()->flash('success', 'Employee created successfully.');
+        $this->redirectRoute('employees.index', navigate: true);
     }
 };
 ?>
 
 <div class="flex flex-col gap-6">
     <div class="flex items-center gap-3">
-        <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('users.index') }}" />
+        <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('employees.index') }}" />
         <div class="flex flex-col">
-            <flux:heading size="xl">Create User</flux:heading>
-            <flux:text variant="muted">Add a new user account with employee profile and role.</flux:text>
+            <flux:heading size="xl">Create Employee</flux:heading>
+            <flux:text variant="muted">Add an employee record. Optionally link to a user account.</flux:text>
         </div>
     </div>
 
     <form wire:submit="save" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 flex flex-col gap-6">
 
-            {{-- Account --}}
+            {{-- Identity --}}
             <flux:card class="space-y-5">
                 <div>
-                    <flux:heading size="lg">Account</flux:heading>
-                    <flux:text variant="muted" size="sm">Login credentials.</flux:text>
-                </div>
-                <flux:separator />
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <flux:input wire:model="username" label="Username" placeholder="username" />
-                    <flux:input wire:model="email" type="email" label="Email Address" placeholder="name@example.com" />
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <flux:input wire:model="password" type="password" label="Password" viewable />
-                    <flux:input wire:model="password_confirmation" type="password" label="Confirm Password" viewable />
-                </div>
-            </flux:card>
-
-            {{-- Employee Identity --}}
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Employee Identity</flux:heading>
+                    <flux:heading size="lg">Identity</flux:heading>
                     <flux:text variant="muted" size="sm">Personal information.</flux:text>
                 </div>
                 <flux:separator />
@@ -211,6 +165,12 @@ new class extends Component {
                     <flux:input wire:model="name" label="Full Name" placeholder="Enter full name" />
                     <flux:input wire:model="employee_number" label="Employee Number" placeholder="e.g. EMP-001" />
                 </div>
+
+                <flux:select wire:model="user_id" variant="listbox" label="Linked User Account" searchable clearable placeholder="Choose user (optional)">
+                    @foreach ($availableUsers as $u)
+                        <flux:select.option value="{{ $u['id'] }}">{{ $u['username'] }} — {{ $u['email'] }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <flux:input wire:model="phonenumber" type="tel" label="Phone Number" placeholder="+62 ..." icon="phone" />
@@ -306,39 +266,14 @@ new class extends Component {
 
                 <flux:input wire:model="join_date" type="date" label="Join Date" />
                 <flux:input wire:model="end_date" type="date" label="End Date" description="Leave blank for permanent" />
-            </flux:card>
 
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Status</flux:heading>
-                    <flux:text variant="muted" size="sm">Account & employee state.</flux:text>
-                </div>
                 <flux:separator />
-
-                <flux:checkbox wire:model="is_active" label="Account Active" description="Allow user to login" />
-                <flux:checkbox wire:model="employee_is_active" label="Employee Active" description="Active employment status" />
-            </flux:card>
-
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Role</flux:heading>
-                    <flux:text variant="muted" size="sm">Assign one role per user.</flux:text>
-                </div>
-                <flux:separator />
-
-                <flux:radio.group wire:model="selectedRole" variant="cards" class="!grid !grid-cols-1 gap-2">
-                    @foreach ($allRoles as $role)
-                        <flux:radio value="{{ $role['id'] }}" :label="ucfirst($role['name'])" />
-                    @endforeach
-                </flux:radio.group>
-                @error('selectedRole')
-                    <flux:text size="sm" class="!text-red-500">{{ $message }}</flux:text>
-                @enderror
+                <flux:checkbox wire:model="is_active" label="Active" description="Active employment status" />
             </flux:card>
 
             <flux:card class="space-y-3">
-                <flux:button variant="primary" type="submit" class="w-full" icon="check">Save User</flux:button>
-                <flux:button wire:navigate href="{{ route('users.index') }}" variant="ghost" class="w-full">Cancel</flux:button>
+                <flux:button variant="primary" type="submit" class="w-full" icon="check">Save Employee</flux:button>
+                <flux:button wire:navigate href="{{ route('employees.index') }}" variant="ghost" class="w-full">Cancel</flux:button>
             </flux:card>
         </div>
     </form>

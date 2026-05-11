@@ -13,7 +13,6 @@
                     <option>Last 90 days</option>
                     <option>This year</option>
                 </flux:select>
-                <flux:button size="sm" icon="arrow-down-tray" variant="ghost">{{ __('Export') }}</flux:button>
                 <flux:button size="sm" icon="plus" variant="primary">{{ __('New Order') }}</flux:button>
             </div>
         </div>

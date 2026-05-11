@@ -11,8 +11,8 @@
 @php
 $classes = Flux::classes()
     ->add('py-3 px-3')
-    ->add('text-start text-sm font-semibold text-zinc-600 dark:text-zinc-300 bg-zinc-100')
-    ->add('border-b border-zinc-800/10 dark:border-white/20')
+    ->add('text-start text-sm font-semibold text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700')
+    ->add('border-b border-t border-zinc-800/10 dark:border-white/20')
     ->add(match($align) {
         'center' => 'group/center-align',
         'end' => 'group/end-align',

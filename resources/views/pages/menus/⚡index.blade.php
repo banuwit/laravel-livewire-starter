@@ -67,18 +67,28 @@ new class extends Component
     </div>
 
     <flux:card class="space-y-4 mt-4" size="sm">
-        <div class="flex items-center gap-3 flex-wrap">
-            <div class="w-64">
-                <flux:input icon="magnifying-glass" placeholder="Search name..." wire:model.live.debounce.300ms="search" clearable />
+        <flux:accordion>
+            <div class="flex items-center gap-4">
+                <flux:accordion.trigger>
+                    <flux:button square icon="funnel" icon:variant="outline" :variant="$layoutFilter ? 'primary' : 'outline'" />
+                </flux:accordion.trigger>
+                <div class="w-64">
+                    <flux:input icon="magnifying-glass" placeholder="Search name..." wire:model.live.debounce.300ms="search" clearable />
+                </div>
             </div>
-            <div class="w-48">
-                <flux:select wire:model.live="layoutFilter" variant="listbox" multiple multiple-display="count" indicator="checkbox" searchable clearable placeholder="Layouts">
-                    <flux:select.option value="sidebar">Sidebar</flux:select.option>
-                    <flux:select.option value="header">Header</flux:select.option>
-                    <flux:select.option value="nav_user">Nav User</flux:select.option>
-                </flux:select>
-            </div>
-        </div>
+
+            <flux:accordion.content class="mt-4">
+                <div class="flex gap-3 flex-wrap">
+                    <div class="w-48">
+                        <flux:select wire:model.live="layoutFilter" variant="listbox" multiple multiple-display="count" indicator="checkbox" searchable clearable placeholder="Layouts">
+                            <flux:select.option value="sidebar">Sidebar</flux:select.option>
+                            <flux:select.option value="header">Header</flux:select.option>
+                            <flux:select.option value="nav_user">Nav User</flux:select.option>
+                        </flux:select>
+                    </div>
+                </div>
+            </flux:accordion.content>
+        </flux:accordion>
 
         <flux:table :paginate="$menus" pagination:scroll-to>
             <flux:table.columns>

@@ -3,9 +3,9 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-zinc-100 dark:bg-zinc-800">
-        <flux:header class="border-b border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
-            <flux:sidebar.collapse class="hidden data-flux-sidebar-collapsed-desktop:flex" />
+    <body class="min-h-screen bg-slate-100 dark:bg-zinc-800">
+        <flux:header sticky class="border-b border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:sidebar.collapse class="data-flux-sidebar-collapsed-desktop:flex" />
             @php
                 $activeMenu = \App\Models\Menu::with('parent')
                     ->where('is_active', true)
@@ -28,10 +28,9 @@
         </flux:header>
 
         <!-- Desktop Sidebar -->
-        <flux:sidebar sticky collapsible collapsed class="bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 dark:bg-zinc-900">
+        <flux:sidebar sticky collapsible collapsed class="bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 dark:bg-zinc-950 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-950 border-e dark:border-zinc-700">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="in-data-flux-sidebar-collapsed-desktop:hidden -mr-2" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>

@@ -4,27 +4,18 @@ use App\Models\Branch;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
+use App\Models\Employee;
 use App\Models\Province;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 new class extends Component {
-    public User $user;
+    public Employee $employee;
 
-    // Account
-    public string $username = '';
-    public string $email = '';
-    public string $password = '';
-    public string $password_confirmation = '';
-    public bool $is_active = true;
-
-    // Employee — Identity
+    // Identity
     public string $name = '';
     public ?string $employee_number = null;
+    public ?int $user_id = null;
     public ?string $gender = null;
     public ?string $phonenumber = null;
     public ?string $religion = null;
@@ -33,63 +24,62 @@ new class extends Component {
     public ?string $marital_status = null;
     public ?string $address = null;
 
-    // Employee — Location
+    // Location
     public ?int $country_id = null;
     public ?int $province_id = null;
     public ?int $city_id = null;
 
-    // Employee — Employment
+    // Employment
     public ?int $company_id = null;
     public ?int $branch_id = null;
-    public bool $employee_is_active = true;
+    public bool $is_active = true;
     public ?string $employee_type = null;
     public ?string $join_date = null;
     public ?string $end_date = null;
 
-    #[Validate('nullable|exists:roles,id')]
-    public ?int $selectedRole = null;
-
     public array $countries = [];
     public array $provinces = [];
     public array $cities = [];
+    public array $availableUsers = [];
     public array $companies = [];
     public array $branches = [];
-    public array $allRoles = [];
 
-    public function mount(User $user)
+    public function mount(Employee $employee)
     {
-        $this->user = $user;
-        $this->username = $user->username;
-        $this->email = $user->email;
-        $this->is_active = (bool) $user->is_active;
-
-        $employee = $user->employee;
-        $this->name = $employee?->name ?? '';
-        $this->employee_number = $employee?->employee_number;
-        $this->gender = $employee?->gender;
-        $this->phonenumber = $employee?->phonenumber;
-        $this->religion = $employee?->religion;
-        $this->birth_place = $employee?->birth_place;
-        $this->birth_date = $employee?->birth_date?->format('Y-m-d');
-        $this->marital_status = $employee?->marital_status;
-        $this->address = $employee?->address;
-        $this->company_id = $employee?->company_id;
-        $this->branch_id = $employee?->branch_id;
-        $this->country_id = $employee?->country_id;
-        $this->province_id = $employee?->province_id;
-        $this->city_id = $employee?->city_id;
-        $this->employee_is_active = (bool) ($employee?->is_active ?? true);
-        $this->employee_type = $employee?->employee_type;
-        $this->join_date = $employee?->join_date?->format('Y-m-d');
-        $this->end_date = $employee?->end_date?->format('Y-m-d');
+        $this->employee = $employee;
+        $this->name = $employee->name;
+        $this->employee_number = $employee->employee_number;
+        $this->user_id = $employee->user_id;
+        $this->gender = $employee->gender;
+        $this->phonenumber = $employee->phonenumber;
+        $this->religion = $employee->religion;
+        $this->birth_place = $employee->birth_place;
+        $this->birth_date = $employee->birth_date?->format('Y-m-d');
+        $this->marital_status = $employee->marital_status;
+        $this->address = $employee->address;
+        $this->company_id = $employee->company_id;
+        $this->branch_id = $employee->branch_id;
+        $this->country_id = $employee->country_id;
+        $this->province_id = $employee->province_id;
+        $this->city_id = $employee->city_id;
+        $this->is_active = (bool) $employee->is_active;
+        $this->employee_type = $employee->employee_type;
+        $this->join_date = $employee->join_date?->format('Y-m-d');
+        $this->end_date = $employee->end_date?->format('Y-m-d');
 
         $this->companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
         $this->branches = $this->company_id ? Branch::where('company_id', $this->company_id)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
         $this->countries = Country::orderBy('name')->get()->toArray();
         $this->provinces = $this->country_id ? Province::where('country_id', $this->country_id)->orderBy('name')->get()->toArray() : [];
         $this->cities = $this->province_id ? City::where('province_id', $this->province_id)->orderBy('name')->get()->toArray() : [];
-        $this->allRoles = Role::whereNotIn('name', ['superadmin'])->select('id', 'name')->get()->toArray();
-        $this->selectedRole = $user->roles->first()?->id;
+        $this->availableUsers = User::query()
+            ->where(function ($q) {
+                $q->whereDoesntHave('employee')
+                  ->orWhere('id', $this->employee->user_id);
+            })
+            ->orderBy('username')
+            ->get(['id', 'username', 'email'])
+            ->toArray();
     }
 
     public function updatedCompanyId($value): void
@@ -114,14 +104,10 @@ new class extends Component {
 
     public function rules()
     {
-        $employeeId = $this->user->employee?->id;
         return [
-            'username' => ['required', 'string', 'alpha_dash', 'max:255', 'unique:users,username,' . $this->user->id],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->user->id],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'is_active' => ['boolean'],
             'name' => ['required', 'string', 'max:255'],
-            'employee_number' => ['nullable', 'string', 'max:50', 'unique:employees,employee_number,' . $employeeId],
+            'employee_number' => ['nullable', 'string', 'max:50', 'unique:employees,employee_number,' . $this->employee->id],
+            'user_id' => ['nullable', 'exists:users,id', 'unique:employees,user_id,' . $this->employee->id],
             'gender' => ['nullable', 'in:male,female'],
             'phonenumber' => ['nullable', 'string', 'max:50'],
             'religion' => ['nullable', 'string', 'max:50'],
@@ -129,12 +115,12 @@ new class extends Component {
             'birth_date' => ['nullable', 'date'],
             'marital_status' => ['nullable', 'in:single,married,divorced,widowed'],
             'address' => ['nullable', 'string', 'max:500'],
+            'company_id' => ['required', 'exists:companies,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
             'country_id' => ['nullable', 'exists:countries,id'],
             'province_id' => ['nullable', 'exists:provinces,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
-            'company_id' => ['required', 'exists:companies,id'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
-            'employee_is_active' => ['boolean'],
+            'is_active' => ['boolean'],
             'employee_type' => ['nullable', 'in:permanent,contract,intern,parttime'],
             'join_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:join_date'],
@@ -145,91 +131,50 @@ new class extends Component {
     {
         $this->validate();
 
-        DB::transaction(function () {
-            $userData = [
-                'username' => $this->username,
-                'email' => $this->email,
-                'is_active' => $this->is_active,
-            ];
-            if (!empty($this->password)) {
-                $userData['password'] = Hash::make($this->password);
-            }
-            $this->user->update($userData);
+        $this->employee->update([
+            'user_id' => $this->user_id,
+            'company_id' => $this->company_id,
+            'branch_id' => $this->branch_id,
+            'employee_number' => $this->employee_number,
+            'name' => $this->name,
+            'gender' => $this->gender,
+            'phonenumber' => $this->phonenumber,
+            'religion' => $this->religion,
+            'birth_place' => $this->birth_place,
+            'birth_date' => $this->birth_date,
+            'marital_status' => $this->marital_status,
+            'address' => $this->address,
+            'country_id' => $this->country_id,
+            'province_id' => $this->province_id,
+            'city_id' => $this->city_id,
+            'is_active' => $this->is_active,
+            'employee_type' => $this->employee_type,
+            'join_date' => $this->join_date,
+            'end_date' => $this->end_date,
+        ]);
 
-            $this->user->employee()->updateOrCreate(
-                ['user_id' => $this->user->id],
-                [
-                    'company_id' => $this->company_id,
-                    'branch_id' => $this->branch_id,
-                    'employee_number' => $this->employee_number,
-                    'name' => $this->name,
-                    'gender' => $this->gender,
-                    'phonenumber' => $this->phonenumber,
-                    'religion' => $this->religion,
-                    'birth_place' => $this->birth_place,
-                    'birth_date' => $this->birth_date,
-                    'marital_status' => $this->marital_status,
-                    'address' => $this->address,
-                    'country_id' => $this->country_id,
-                    'province_id' => $this->province_id,
-                    'city_id' => $this->city_id,
-                    'is_active' => $this->employee_is_active,
-                    'employee_type' => $this->employee_type,
-                    'join_date' => $this->join_date,
-                    'end_date' => $this->end_date,
-                ]
-            );
-
-            if ($this->selectedRole) {
-                $role = Role::find($this->selectedRole);
-                if ($role) {
-                    $this->user->syncRoles([$role->name]);
-                }
-            } else {
-                $this->user->syncRoles([]);
-            }
-        });
-
-        session()->flash('success', 'User updated successfully.');
-        $this->redirectRoute('users.index', navigate: true);
+        session()->flash('success', 'Employee updated successfully.');
+        $this->redirectRoute('employees.index', navigate: true);
     }
 };
 ?>
 
 <div class="flex flex-col gap-6">
     <div class="flex items-center gap-3">
-        <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('users.index') }}" />
+        <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('employees.index') }}" />
         <div class="flex flex-col">
-            <flux:heading size="xl">Edit User</flux:heading>
-            <flux:text variant="muted">Update account, employee profile and role.</flux:text>
+            <flux:heading size="xl">Edit Employee</flux:heading>
+            <flux:text variant="muted">Update employee profile and linked account.</flux:text>
         </div>
     </div>
 
     <form wire:submit="save" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 flex flex-col gap-6">
 
-            {{-- Account --}}
+            {{-- Identity --}}
             <flux:card class="space-y-5">
                 <div>
-                    <flux:heading size="lg">Account</flux:heading>
-                    <flux:text variant="muted" size="sm">Login credentials.</flux:text>
-                </div>
-                <flux:separator />
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <flux:input wire:model="username" label="Username" placeholder="username" />
-                    <flux:input wire:model="email" type="email" label="Email Address" placeholder="name@example.com" />
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <flux:input wire:model="password" type="password" label="New Password" description="Leave blank to keep current password" viewable />
-                    <flux:input wire:model="password_confirmation" type="password" label="Confirm New Password" viewable />
-                </div>
-            </flux:card>
-
-            {{-- Employee Identity --}}
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Employee Identity</flux:heading>
+                    <flux:heading size="lg">Identity</flux:heading>
                     <flux:text variant="muted" size="sm">Personal information.</flux:text>
                 </div>
                 <flux:separator />
@@ -238,6 +183,12 @@ new class extends Component {
                     <flux:input wire:model="name" label="Full Name" placeholder="Enter full name" />
                     <flux:input wire:model="employee_number" label="Employee Number" placeholder="e.g. EMP-001" />
                 </div>
+
+                <flux:select wire:model="user_id" variant="listbox" label="Linked User Account" searchable clearable placeholder="Choose user (optional)">
+                    @foreach ($availableUsers as $u)
+                        <flux:select.option value="{{ $u['id'] }}">{{ $u['username'] }} — {{ $u['email'] }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <flux:input wire:model="phonenumber" type="tel" label="Phone Number" placeholder="+62 ..." icon="phone" />
@@ -333,39 +284,14 @@ new class extends Component {
 
                 <flux:input wire:model="join_date" type="date" label="Join Date" />
                 <flux:input wire:model="end_date" type="date" label="End Date" description="Leave blank for permanent" />
-            </flux:card>
 
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Status</flux:heading>
-                    <flux:text variant="muted" size="sm">Account & employee state.</flux:text>
-                </div>
                 <flux:separator />
-
-                <flux:checkbox wire:model="is_active" label="Account Active" description="Allow user to login" />
-                <flux:checkbox wire:model="employee_is_active" label="Employee Active" description="Active employment status" />
-            </flux:card>
-
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Role</flux:heading>
-                    <flux:text variant="muted" size="sm">Assign one role per user.</flux:text>
-                </div>
-                <flux:separator />
-
-                <flux:radio.group wire:model="selectedRole" variant="cards" class="!grid !grid-cols-1 gap-2">
-                    @foreach ($allRoles as $role)
-                        <flux:radio value="{{ $role['id'] }}" :label="ucfirst($role['name'])" />
-                    @endforeach
-                </flux:radio.group>
-                @error('selectedRole')
-                    <flux:text size="sm" class="!text-red-500">{{ $message }}</flux:text>
-                @enderror
+                <flux:checkbox wire:model="is_active" label="Active" description="Active employment status" />
             </flux:card>
 
             <flux:card class="space-y-3">
-                <flux:button variant="primary" type="submit" class="w-full" icon="check">Update User</flux:button>
-                <flux:button wire:navigate href="{{ route('users.index') }}" variant="ghost" class="w-full">Cancel</flux:button>
+                <flux:button variant="primary" type="submit" class="w-full" icon="check">Update Employee</flux:button>
+                <flux:button wire:navigate href="{{ route('employees.index') }}" variant="ghost" class="w-full">Cancel</flux:button>
             </flux:card>
         </div>
     </form>
