@@ -19,10 +19,18 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete()->after('company_id');
+        });
     }
 
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('branch_id');
+        });
+
         Schema::dropIfExists('branches');
     }
 };

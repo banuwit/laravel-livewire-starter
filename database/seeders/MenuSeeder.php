@@ -182,10 +182,6 @@ class MenuSeeder extends Seeder
             'users.view', 'users.create', 'users.edit', 'users.delete', 'users.assign_roles',
         ]);
 
-        $employees = $this->child('employees', 'Employees', 'identification', $admin, 2, 'employees.index', 'employees.*');
-        $this->attachPerms($employees, [
-            'employees.view', 'employees.create', 'employees.edit', 'employees.delete',
-        ]);
 
         $companies = $this->child('companies', 'Companies', 'building-office', $admin, 3, 'companies.index', 'companies.*');
         $this->attachPerms($companies, [

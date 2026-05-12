@@ -7,12 +7,13 @@ trait EmployeeValidationRules
     /**
      * @return array<string, array<int, mixed>>
      */
-    protected function employeeRules(): array
+    protected function employeeRules(?int $employeeId = null): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'gender' => ['nullable', 'in:male,female'],
-            'phonenumber' => ['nullable', 'string', 'max:50'],
+            'employee_number' => array_filter([
+                'nullable', 'string', 'max:50',
+                $employeeId ? "unique:employees,employee_number,{$employeeId}" : 'unique:employees,employee_number',
+            ]),
             'religion' => ['nullable', 'string', 'max:50'],
             'birth_place' => ['nullable', 'string', 'max:100'],
             'birth_date' => ['nullable', 'date'],
@@ -21,7 +22,9 @@ trait EmployeeValidationRules
             'country_id' => ['nullable', 'exists:countries,id'],
             'province_id' => ['nullable', 'exists:provinces,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
-            'is_active' => ['boolean'],
+            'employee_type' => ['nullable', 'in:permanent,contract,intern,parttime'],
+            'join_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:join_date'],
         ];
     }
 }

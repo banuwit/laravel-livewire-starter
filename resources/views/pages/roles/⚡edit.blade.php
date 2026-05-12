@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
@@ -72,17 +72,22 @@ new class extends Component
     }
 };
 ?>
-
 <div class="flex flex-col gap-6">
-    <div class="flex items-center gap-3">
-        <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('roles.index') }}" />
-        <div class="flex flex-col">
-            <flux:heading size="xl">Edit Role</flux:heading>
-            <flux:text variant="muted">Update role details and permissions.</flux:text>
+    <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('roles.index') }}" />
+            <div class="flex flex-col">
+                <flux:heading size="xl">Edit Role</flux:heading>
+                <flux:text variant="muted">Update role details and permissions.</flux:text>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <flux:button wire:navigate href="{{ route('roles.index') }}" variant="ghost">Cancel</flux:button>
+            <flux:button type="submit" form="save-form" variant="primary" icon="check">Update Role</flux:button>
         </div>
     </div>
 
-    <form wire:submit="updateRole" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <form id="save-form" wire:submit="updateRole" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Right wide: permissions --}}
         <flux:card class="lg:col-span-2 lg:order-2">
             <div class="flex flex-col gap-5">
@@ -152,10 +157,6 @@ new class extends Component
                 <flux:input wire:model="guard_name" label="Guard Name" placeholder="web" required description="Default: web" />
             </flux:card>
 
-            <flux:card class="space-y-3">
-                <flux:button variant="primary" type="submit" class="w-full" icon="check">Update Role</flux:button>
-                <flux:button wire:navigate href="{{ route('roles.index') }}" variant="ghost" class="w-full">Cancel</flux:button>
-            </flux:card>
         </div>
     </form>
 </div>

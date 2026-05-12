@@ -8,31 +8,24 @@ use Illuminate\Validation\Rule;
 trait ProfileValidationRules
 {
     /**
-     * Account-level rules (auth concerns).
-     *
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>>
+     * @return array<string, array<int, mixed>>
      */
     protected function accountRules(?int $userId = null): array
     {
         return [
-            'username' => $this->usernameRules($userId),
             'email' => $this->emailRules($userId),
         ];
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<string, array<int, mixed>>
      */
-    protected function usernameRules(?int $userId = null): array
+    protected function profileRules(): array
     {
         return [
-            'required',
-            'string',
-            'alpha_dash',
-            'max:255',
-            $userId === null
-                ? Rule::unique(User::class, 'username')
-                : Rule::unique(User::class, 'username')->ignore($userId),
+            'name' => ['required', 'string', 'max:255'],
+            'phonenumber' => ['nullable', 'string', 'max:50'],
+            'gender' => ['nullable', 'in:male,female'],
         ];
     }
 

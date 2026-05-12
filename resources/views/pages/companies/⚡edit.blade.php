@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Models\Company;
 use Livewire\Component;
@@ -54,17 +54,22 @@ new class extends Component {
     }
 };
 ?>
-
 <div class="flex flex-col gap-6">
-    <div class="flex items-center gap-3">
-        <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('companies.index') }}" />
-        <div class="flex flex-col">
-            <flux:heading size="xl">Edit Company</flux:heading>
-            <flux:text variant="muted">{{ $company->name }}</flux:text>
+    <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('companies.index') }}" />
+            <div class="flex flex-col">
+                <flux:heading size="xl">Edit Company</flux:heading>
+                <flux:text variant="muted">{{ $company->name }}</flux:text>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <flux:button wire:navigate href="{{ route('companies.index') }}" variant="ghost">Cancel</flux:button>
+            <flux:button type="submit" form="save-form" variant="primary" icon="check">Save Company</flux:button>
         </div>
     </div>
 
-    <form wire:submit="save" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <form id="save-form" wire:submit="save" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 flex flex-col gap-6">
             <flux:card class="space-y-5">
                 <div>
@@ -93,10 +98,6 @@ new class extends Component {
                 <flux:checkbox wire:model="is_active" label="Active" description="Company is operational" />
             </flux:card>
 
-            <flux:card class="space-y-3">
-                <flux:button variant="primary" type="submit" class="w-full" icon="check">Update Company</flux:button>
-                <flux:button wire:navigate href="{{ route('companies.index') }}" variant="ghost" class="w-full">Cancel</flux:button>
-            </flux:card>
         </div>
     </form>
 </div>

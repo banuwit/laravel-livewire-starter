@@ -26,7 +26,6 @@ class DatabaseSeeder extends Seeder
         $province = Province::first();
         $city = City::first();
 
-        // Seed 1 company + branches
         $company = Company::create([
             'name' => 'PT Lite Indonesia',
             'code' => 'LITE',
@@ -43,29 +42,28 @@ class DatabaseSeeder extends Seeder
         ])->map(fn ($b) => $company->branches()->create(array_merge($b, ['is_active' => true])));
 
         $superadmin = User::factory()->create([
-            'username' => 'banulite',
+            'name' => 'Banu Lite',
             'email' => 'banu@lite.id',
             'password' => 'testtest',
+            'phonenumber' => '08123456789',
+            'gender' => 'male',
+            'company_id' => $company->id,
+            'branch_id' => $branches->first()->id,
             'is_active' => true,
         ]);
         $superadmin->employee()->create([
-            'company_id' => $company->id,
-            'branch_id' => $branches->first()->id,
-            'name' => 'Banu Lite',
-            'gender' => 'male',
-            'phonenumber' => '08123456789',
             'religion' => 'islam',
-            'country_id' => $country?->id ?? 1,
-            'province_id' => $province?->id ?? 1,
-            'city_id' => $city?->id ?? 1,
-            'is_active' => true,
+            'country_id' => $country?->id,
+            'province_id' => $province?->id,
+            'city_id' => $city?->id,
             'employee_type' => 'permanent',
             'join_date' => '2020-01-01',
         ]);
         $superadmin->assignRole('superadmin');
 
         User::factory(36)
-            ->withEmployee(['company_id' => $company->id, 'branch_id' => $branches->random()->id])
+            ->withEmployee()
+            ->state(['company_id' => $company->id, 'branch_id' => $branches->random()->id])
             ->create()
             ->each(fn ($user) => $user->assignRole('staff'));
     }

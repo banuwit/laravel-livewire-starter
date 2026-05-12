@@ -13,11 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('users/create', 'pages::users.create')->middleware('permission:users.create')->name('users.create');
     Route::livewire('users/{user}/edit', 'pages::users.edit')->middleware('permission:users.edit')->name('users.edit');
     Route::livewire('users/{user}/roles', 'pages::users.roles')->middleware('permission:users.assign_roles')->name('users.roles');
-
-    Route::livewire('employees', 'pages::employees.index')->middleware('permission:employees.view')->name('employees.index');
-    Route::livewire('employees/create', 'pages::employees.create')->middleware('permission:employees.create')->name('employees.create');
-    Route::livewire('employees/{employee}/edit', 'pages::employees.edit')->middleware('permission:employees.edit')->name('employees.edit');
-
+    
     Route::livewire('companies', 'pages::companies.index')->middleware('permission:companies.view')->name('companies.index');
     Route::livewire('companies/create', 'pages::companies.create')->middleware('permission:companies.create')->name('companies.create');
     Route::livewire('companies/{company}/edit', 'pages::companies.edit')->middleware('permission:companies.edit')->name('companies.edit');
