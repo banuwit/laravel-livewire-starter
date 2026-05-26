@@ -18,14 +18,7 @@
             </div>
         </div>
         <flux:menu.separator />
-        <div x-data class="px-2 py-1.5">
-            <flux:radio.group x-model="$flux.appearance" variant="segmented" size="sm" class="w-full">
-                <flux:radio value="light" icon="sun" />
-                <flux:radio value="dark" icon="moon" />
-                <flux:radio value="system" icon="computer-desktop" />
-            </flux:radio.group>
-        </div>
-        <flux:menu.separator />
+
         <flux:menu.radio.group>
             <flux:menu.item :href="route('profile.edit')" icon="user" wire:navigate>
                 {{ __('Profile') }}

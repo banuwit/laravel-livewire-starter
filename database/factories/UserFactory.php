@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Parameter;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -23,7 +24,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'is_active' => true,
             'phonenumber' => fake()->phoneNumber(),
-            'gender' => fake()->randomElement(['male', 'female']),
+            'gender_id' => Parameter::group('gender')->inRandomOrder()->value('id'),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
@@ -47,25 +48,22 @@ class UserFactory extends Factory
         ]);
     }
 
-    public function withEmployee(array $attributes = []): static
+    public function withProfile(array $attributes = []): static
     {
         return $this->afterCreating(function (User $user) use ($attributes) {
             $province = \App\Models\Province::inRandomOrder()->first();
 
-            $user->employee()->create(array_merge([
-                'religion' => fake()->randomElement(['islam', 'kristen', 'hindu', 'buddhist', 'other']),
-                'birth_place' => fake()->city(),
+            $user->profile()->create(array_merge([
+                'identity_number' => fake()->numerify('################'),
+                'religion_id' => Parameter::group('religion')->inRandomOrder()->value('id'),
                 'birth_date' => fake()->dateTimeBetween('-55 years', '-20 years')->format('Y-m-d'),
-                'marital_status' => fake()->randomElement(['single', 'married', 'divorced', 'widowed']),
+                'marital_status_id' => Parameter::group('marital_status')->inRandomOrder()->value('id'),
                 'address' => fake()->address(),
                 'country_id' => $province?->country_id,
                 'province_id' => $province?->id,
                 'city_id' => $province
                     ? \App\Models\City::where('province_id', $province->id)->inRandomOrder()->value('id')
                     : null,
-                'employee_type' => fake()->randomElement(['permanent', 'contract', 'intern', 'parttime']),
-                'join_date' => fake()->dateTimeBetween('-10 years', 'now')->format('Y-m-d'),
-                'end_date' => null,
             ], $attributes));
         });
     }

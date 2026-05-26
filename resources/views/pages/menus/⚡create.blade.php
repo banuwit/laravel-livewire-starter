@@ -1,5 +1,6 @@
 ﻿<?php
 
+use Flux\Flux;
 use Livewire\Component;
 use App\Models\Menu;
 use App\Models\Permission;
@@ -113,7 +114,7 @@ new class extends Component
 
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
-        session()->flash('success', 'Menu created successfully.');
+        Flux::toast(variant: 'success', text: 'Menu created successfully.');
         $this->redirectRoute('menus.index', navigate: true);
     }
 
@@ -149,12 +150,12 @@ new class extends Component
                 <flux:separator />
 
                 <flux:tab.group variant="segmented">
-                    <flux:tab.list variant="segmented">
+                    <flux:tabs variant="segmented">
                         <flux:tab name="routing" icon="link">Routing & Hierarchy</flux:tab>
                         <flux:tab name="permissions" icon="key">
                             Permissions
                         </flux:tab>
-                    </flux:tab.list>
+                    </flux:tabs>
 
                     {{-- Routing tab --}}
                     <flux:tab.panel name="routing" class="space-y-4">

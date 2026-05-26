@@ -20,56 +20,56 @@
         {{-- KPI Stat Cards --}}
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {{-- Revenue --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <div class="flex items-center justify-between">
-                    <flux:text class="!text-zinc-500">Total Revenue</flux:text>
+                    <flux:text class="text-zinc-500!">Total Revenue</flux:text>
                     <flux:icon.banknotes variant="mini" class="text-emerald-500" />
                 </div>
                 <div class="mt-2 flex items-end justify-between">
                     <flux:heading size="xl" level="2">$248,920</flux:heading>
                     <flux:badge color="emerald" size="sm" icon="arrow-trending-up">+12.4%</flux:badge>
                 </div>
-                <flux:text size="sm" class="mt-1 !text-zinc-500">vs $221,540 last period</flux:text>
-            </div>
+                <flux:text size="sm" class="mt-1 text-zinc-500!">vs $221,540 last period</flux:text>
+            </flux:card>
 
             {{-- Orders --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <div class="flex items-center justify-between">
-                    <flux:text class="!text-zinc-500">Orders</flux:text>
+                    <flux:text class="text-zinc-500!">Orders</flux:text>
                     <flux:icon.shopping-bag variant="mini" class="text-blue-500" />
                 </div>
                 <div class="mt-2 flex items-end justify-between">
                     <flux:heading size="xl" level="2">3,841</flux:heading>
                     <flux:badge color="emerald" size="sm" icon="arrow-trending-up">+8.1%</flux:badge>
                 </div>
-                <flux:text size="sm" class="mt-1 !text-zinc-500">312 pending fulfillment</flux:text>
-            </div>
+                <flux:text size="sm" class="mt-1 text-zinc-500!">312 pending fulfillment</flux:text>
+            </flux:card>
 
             {{-- Customers --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <div class="flex items-center justify-between">
-                    <flux:text class="!text-zinc-500">New Customers</flux:text>
+                    <flux:text class="text-zinc-500!">New Customers</flux:text>
                     <flux:icon.user-group variant="mini" class="text-violet-500" />
                 </div>
                 <div class="mt-2 flex items-end justify-between">
                     <flux:heading size="xl" level="2">1,204</flux:heading>
                     <flux:badge color="rose" size="sm" icon="arrow-trending-down">-2.3%</flux:badge>
                 </div>
-                <flux:text size="sm" class="mt-1 !text-zinc-500">68% returning customers</flux:text>
-            </div>
+                <flux:text size="sm" class="mt-1 text-zinc-500!">68% returning customers</flux:text>
+            </flux:card>
 
             {{-- Conversion Rate --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <div class="flex items-center justify-between">
-                    <flux:text class="!text-zinc-500">Conversion Rate</flux:text>
+                    <flux:text class="text-zinc-500!">Conversion Rate</flux:text>
                     <flux:icon.chart-bar variant="mini" class="text-amber-500" />
                 </div>
                 <div class="mt-2 flex items-end justify-between">
                     <flux:heading size="xl" level="2">3.84%</flux:heading>
                     <flux:badge color="emerald" size="sm" icon="arrow-trending-up">+0.6%</flux:badge>
                 </div>
-                <flux:text size="sm" class="mt-1 !text-zinc-500">Avg. order value $64.79</flux:text>
-            </div>
+                <flux:text size="sm" class="mt-1 text-zinc-500!">Avg. order value $64.79</flux:text>
+            </flux:card>
         </div>
 
         {{-- Mini-stats --}}
@@ -80,23 +80,23 @@
                 ['icon' => 'arrow-uturn-left', 'label' => 'Returns',        'value' => '32 items',   'hint' => '1.2% return rate'],
                 ['icon' => 'ticket',       'label' => 'Open Support',       'value' => '47 tickets', 'hint' => 'SLA 92% on time'],
             ] as $m)
-                <div class="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:card size="sm" class="flex items-center gap-3">
                     <div class="flex size-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
                         <flux:icon :name="$m['icon']" variant="mini" class="text-zinc-600 dark:text-zinc-300" />
                     </div>
                     <div class="flex-1">
-                        <flux:text size="sm" class="!text-zinc-500">{{ $m['label'] }}</flux:text>
-                        <flux:text class="!font-semibold">{{ $m['value'] }}</flux:text>
+                        <flux:text size="sm" class="text-zinc-500!">{{ $m['label'] }}</flux:text>
+                        <flux:text class="font-semibold!">{{ $m['value'] }}</flux:text>
                     </div>
-                    <flux:text size="sm" class="!text-zinc-500 hidden sm:block">{{ $m['hint'] }}</flux:text>
-                </div>
+                    <flux:text size="sm" class="text-zinc-500! hidden sm:block">{{ $m['hint'] }}</flux:text>
+                </flux:card>
             @endforeach
         </div>
 
         {{-- Sales Chart + Channel Mix --}}
         <div class="grid gap-4 lg:grid-cols-3">
             {{-- Revenue chart placeholder --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900 lg:col-span-2">
+            <flux:card class="p-5! lg:col-span-2">
                 <div class="flex items-start justify-between">
                     <div>
                         <flux:heading size="lg">Revenue Trend</flux:heading>
@@ -135,10 +135,10 @@
                     <div class="flex items-center gap-2"><span class="size-2.5 rounded-full bg-emerald-500"></span><span class="text-zinc-500">This period</span></div>
                     <div class="flex items-center gap-2"><span class="size-2.5 rounded-full bg-zinc-400"></span><span class="text-zinc-500">Previous</span></div>
                 </div>
-            </div>
+            </flux:card>
 
             {{-- Channel mix --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <flux:heading size="lg">Sales by Channel</flux:heading>
                 <flux:subheading>Distribution this month</flux:subheading>
 
@@ -151,8 +151,8 @@
                     ] as $row)
                         <div>
                             <div class="flex items-center justify-between">
-                                <flux:text class="!font-medium">{{ $row['label'] }}</flux:text>
-                                <flux:text size="sm" class="!text-zinc-500">{{ $row['amount'] }} • {{ $row['value'] }}%</flux:text>
+                                <flux:text class="font-medium!">{{ $row['label'] }}</flux:text>
+                                <flux:text size="sm" class="text-zinc-500!">{{ $row['amount'] }} • {{ $row['value'] }}%</flux:text>
                             </div>
                             <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                                 <div class="h-full rounded-full {{ $row['color'] }}" style="width: {{ $row['value'] }}%"></div>
@@ -160,13 +160,13 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
+            </flux:card>
         </div>
 
         {{-- Recent Transactions + Top Products --}}
         <div class="grid gap-4 lg:grid-cols-3">
             {{-- Transactions table --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900 lg:col-span-2">
+            <flux:card class="p-5! lg:col-span-2">
                 <div class="flex items-center justify-between">
                     <div>
                         <flux:heading size="lg">Recent Transactions</flux:heading>
@@ -195,7 +195,7 @@
                             <flux:table.row>
                                 <flux:table.cell variant="strong">{{ $tx['id'] }}</flux:table.cell>
                                 <flux:table.cell>{{ $tx['customer'] }}</flux:table.cell>
-                                <flux:table.cell class="!text-zinc-500">{{ $tx['channel'] }}</flux:table.cell>
+                                <flux:table.cell class="text-zinc-500!">{{ $tx['channel'] }}</flux:table.cell>
                                 <flux:table.cell>
                                     <flux:badge size="sm" color="{{ $tx['color'] }}">{{ $tx['status'] }}</flux:badge>
                                 </flux:table.cell>
@@ -204,10 +204,10 @@
                         @endforeach
                     </flux:table.rows>
                 </flux:table>
-            </div>
+            </flux:card>
 
             {{-- Top Products --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <div class="flex items-center justify-between">
                     <div>
                         <flux:heading size="lg">Top Products</flux:heading>
@@ -228,20 +228,20 @@
                                 #{{ $i + 1 }}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <flux:text class="!font-medium truncate">{{ $p['name'] }}</flux:text>
-                                <flux:text size="sm" class="!text-zinc-500">{{ $p['sku'] }} • {{ $p['sold'] }} sold</flux:text>
+                                <flux:text class="font-medium! truncate">{{ $p['name'] }}</flux:text>
+                                <flux:text size="sm" class="text-zinc-500!">{{ $p['sku'] }} • {{ $p['sold'] }} sold</flux:text>
                             </div>
-                            <flux:text class="!font-semibold">{{ $p['revenue'] }}</flux:text>
+                            <flux:text class="font-semibold!">{{ $p['revenue'] }}</flux:text>
                         </li>
                     @endforeach
                 </ul>
-            </div>
+            </flux:card>
         </div>
 
         {{-- CRM section --}}
         <div class="grid gap-4 lg:grid-cols-3">
             {{-- Pipeline --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900 lg:col-span-2">
+            <flux:card class="p-5! lg:col-span-2">
                 <div class="flex items-center justify-between">
                     <div>
                         <flux:heading size="lg">CRM Pipeline</flux:heading>
@@ -260,17 +260,17 @@
                         <div class="rounded-lg border-l-4 {{ $s['color'] }} bg-zinc-50 p-4 dark:bg-zinc-800/50">
                             <div class="flex items-center gap-2">
                                 <span class="size-2 rounded-full {{ $s['dot'] }}"></span>
-                                <flux:text size="sm" class="!text-zinc-500 !font-medium">{{ $s['stage'] }}</flux:text>
+                                <flux:text size="sm" class="text-zinc-500! font-medium!">{{ $s['stage'] }}</flux:text>
                             </div>
-                            <flux:heading size="lg" class="!mt-2">{{ $s['count'] }}</flux:heading>
-                            <flux:text size="sm" class="!text-zinc-500">{{ $s['value'] }} potential</flux:text>
+                            <flux:heading size="lg" class="mt-2!">{{ $s['count'] }}</flux:heading>
+                            <flux:text size="sm" class="text-zinc-500!">{{ $s['value'] }} potential</flux:text>
                         </div>
                     @endforeach
                 </div>
 
                 {{-- Recent activity --}}
                 <div class="mt-6">
-                    <flux:heading size="sm" class="!text-zinc-500 !uppercase !tracking-wide">Recent Activity</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500! uppercase! tracking-wide!">Recent Activity</flux:heading>
                     <ul class="mt-3 space-y-4">
                         @foreach ([
                             ['icon' => 'phone',          'color' => 'text-blue-500',    'who' => 'Amelia Hartwell',  'what' => 'Discovery call scheduled with Acme Corp.', 'time' => '2m ago'],
@@ -284,16 +284,16 @@
                                 </div>
                                 <div class="flex-1">
                                     <flux:text><span class="font-medium">{{ $a['who'] }}</span> — {{ $a['what'] }}</flux:text>
-                                    <flux:text size="sm" class="!text-zinc-500">{{ $a['time'] }}</flux:text>
+                                    <flux:text size="sm" class="text-zinc-500!">{{ $a['time'] }}</flux:text>
                                 </div>
                             </li>
                         @endforeach
                     </ul>
                 </div>
-            </div>
+            </flux:card>
 
             {{-- Top customers --}}
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:card class="p-5!">
                 <div class="flex items-center justify-between">
                     <div>
                         <flux:heading size="lg">Top Customers</flux:heading>
@@ -315,12 +315,12 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
-                                    <flux:text class="!font-medium truncate">{{ $c['name'] }}</flux:text>
+                                    <flux:text class="font-medium! truncate">{{ $c['name'] }}</flux:text>
                                     <flux:badge size="sm" color="{{ $c['color'] }}">{{ $c['tier'] }}</flux:badge>
                                 </div>
-                                <flux:text size="sm" class="!text-zinc-500 truncate">{{ $c['email'] }}</flux:text>
+                                <flux:text size="sm" class="text-zinc-500! truncate">{{ $c['email'] }}</flux:text>
                             </div>
-                            <flux:text class="!font-semibold">{{ $c['ltv'] }}</flux:text>
+                            <flux:text class="font-semibold!">{{ $c['ltv'] }}</flux:text>
                         </li>
                     @endforeach
                 </ul>
@@ -328,7 +328,7 @@
                 <flux:separator class="my-5" />
 
                 <flux:button class="w-full" variant="primary" icon="user-plus">Add new customer</flux:button>
-            </div>
+            </flux:card>
         </div>
     </div>
 </x-layouts::app>

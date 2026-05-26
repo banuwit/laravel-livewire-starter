@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::view('/faithamins', 'faithamins')->name('faithamins');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
@@ -25,6 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('menus', 'pages::menus.index')->middleware('permission:menus.view')->name('menus.index');
     Route::livewire('menus/create', 'pages::menus.create')->middleware('permission:menus.create')->name('menus.create');
     Route::livewire('menus/{menu}/edit', 'pages::menus.edit')->middleware('permission:menus.edit')->name('menus.edit');
+
+    Route::livewire('configurations/parameters', 'pages::configurations.parameters.index')->middleware('permission:parameters.view')->name('parameters.index');
 });
 
 require __DIR__.'/settings.php';

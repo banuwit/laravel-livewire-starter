@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['email', 'password', 'is_active', 'name', 'phonenumber', 'gender', 'company_id', 'branch_id'])]
+#[Fillable(['email', 'password', 'is_active', 'name', 'phonenumber', 'gender_id', 'company_id', 'branch_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -42,9 +42,14 @@ class User extends Authenticatable
             ->implode('');
     }
 
-    public function employee()
+    public function profile()
     {
-        return $this->hasOne(Employee::class);
+        return $this->hasOne(Profile::class);
+    }
+
+    public function gender()
+    {
+        return $this->belongsTo(Parameter::class, 'gender_id');
     }
 
     public function company()

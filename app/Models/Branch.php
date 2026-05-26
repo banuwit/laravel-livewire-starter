@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['company_id', 'name', 'code', 'phone', 'email', 'address', 'is_active'])]
+#[Fillable(['company_id', 'name', 'type', 'code', 'phone', 'email', 'address', 'is_active'])]
 class Branch extends Model
 {
     use HasFactory;
@@ -21,8 +21,8 @@ class Branch extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function employees()
+    public function users()
     {
-        return $this->hasMany(Employee::class);
+        return $this->hasMany(User::class);
     }
 }

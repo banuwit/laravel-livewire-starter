@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Branch;
-use App\Models\Company;
 use App\Models\User;
+use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
@@ -12,24 +12,18 @@ new class extends Component {
 
     public string $search = '';
     public ?string $gender = null;
-    public ?int $company_id = null;
-    public ?int $branch_id = null;
+    public array $branchFilter = [];
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
 
-    public array $companies = [];
+    public ?int $deletingId = null;
+    public string $deletingLabel = '';
+
     public array $branches = [];
 
     public function mount()
     {
-        $this->companies = Company::orderBy('name')->get(['id', 'name'])->toArray();
-    }
-
-    public function updatedCompanyId($value): void
-    {
-        $this->branch_id = null;
-        $this->branches = $value ? Branch::where('company_id', $value)->orderBy('name')->get(['id', 'name'])->toArray() : [];
-        $this->resetPage();
+        $this->branches = Branch::orderBy('name')->get(['id', 'name'])->toArray();
     }
 
     public function sortBy(string $field): void
@@ -45,14 +39,28 @@ new class extends Component {
 
     public function updated($property): void
     {
-        if (in_array($property, ['search', 'gender', 'branch_id', 'company_id'])) {
+        if (in_array($property, ['search', 'gender', 'branchFilter'])) {
             $this->resetPage();
         }
     }
 
-    public function deleteUser(User $user): void
+    public function confirmDelete(int $id): void
     {
-        $user->delete();
+        $user = User::findOrFail($id);
+        $this->deletingId = $id;
+        $this->deletingLabel = $user->name ?? $user->email;
+        Flux::modal('delete-user')->show();
+    }
+
+    public function delete(): void
+    {
+        if ($this->deletingId) {
+            User::find($this->deletingId)?->delete();
+            Flux::toast(variant: 'success', text: 'User deleted.');
+        }
+        $this->reset('deletingId', 'deletingLabel');
+        Flux::modal('delete-user')->close();
+        $this->resetPage();
     }
 
     public function render()
@@ -64,8 +72,7 @@ new class extends Component {
                   ->orWhere('email', 'like', '%' . $this->search . '%');
             }))
             ->when($this->gender, fn ($q) => $q->where('gender', $this->gender))
-            ->when($this->company_id, fn ($q) => $q->where('company_id', $this->company_id))
-            ->when($this->branch_id, fn ($q) => $q->where('branch_id', $this->branch_id))
+            ->when($this->branchFilter, fn ($q) => $q->whereIn('branch_id', $this->branchFilter))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
 
@@ -83,66 +90,41 @@ new class extends Component {
     </div>
 
     <flux:card class="space-y-4" size="sm">
-        <flux:accordion>
-            <div class="flex items-center gap-4">
-                <flux:accordion.trigger>
-                    <flux:button square icon="funnel" icon:variant="outline" :variant="$company_id || $branch_id || $gender ? 'primary' : 'outline'" />
-                </flux:accordion.trigger>
-                <div class="w-72">
-                    <flux:input icon="magnifying-glass" placeholder="Search name or email..." wire:model.live.debounce.300ms="search" clearable />
-                </div>
+        <div class="flex items-center gap-4">
+            <div class="w-72">
+                <flux:input icon="magnifying-glass" placeholder="Search name or email..." wire:model.live.debounce.300ms="search" clearable />
             </div>
-
-            <flux:accordion.content class="mt-4">
-                <div class="flex gap-3 flex-wrap">
-                    <div class="w-48">
-                        <flux:select wire:model.live="company_id" variant="listbox" searchable clearable placeholder="Company">
-                            @foreach ($companies as $company)
-                                <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="w-48">
-                        <flux:select wire:model.live="branch_id" variant="listbox" searchable clearable :disabled="!$company_id" :placeholder="!$company_id ? 'Select company first' : 'Branch'">
-                            @foreach ($branches as $branch)
-                                <flux:select.option value="{{ $branch['id'] }}">{{ $branch['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="w-48">
-                        <flux:select wire:model.live="gender" variant="listbox" indicator="radio" searchable clearable placeholder="Gender">
-                            <flux:select.option value="male">Male</flux:select.option>
-                            <flux:select.option value="female">Female</flux:select.option>
-                        </flux:select>
-                    </div>
-                </div>
-            </flux:accordion.content>
-        </flux:accordion>
+            <div class="w-48">
+                <flux:select wire:model.live="branchFilter" variant="listbox" multiple multiple-display="count" indicator="checkbox" searchable clearable placeholder="Branch">
+                    @foreach ($branches as $branch)
+                        <flux:select.option value="{{ $branch['id'] }}">{{ $branch['name'] }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+            <div class="w-48">
+                <flux:select wire:model.live="gender" variant="listbox" indicator="radio" searchable clearable placeholder="Gender">
+                    <flux:select.option value="male">Male</flux:select.option>
+                    <flux:select.option value="female">Female</flux:select.option>
+                </flux:select>
+            </div>
+        </div>
 
         <flux:table :paginate="$users" pagination:scroll-to>
             <flux:table.columns>
                 <flux:table.column>#</flux:table.column>
-                <flux:table.column>
-                    <flux:table.sortable :sorted="$sortField === 'name'" :direction="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">
-                        Name
-                    </flux:table.sortable>
-                </flux:table.column>
+                <flux:table.column sortable :sorted="$sortField === 'name'" :direction="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">Name</flux:table.column>
                 <flux:table.column>Phone</flux:table.column>
                 <flux:table.column>Company</flux:table.column>
                 <flux:table.column>Branch</flux:table.column>
                 <flux:table.column>Gender</flux:table.column>
                 <flux:table.column>Role</flux:table.column>
-                <flux:table.column>
-                    <flux:table.sortable :sorted="$sortField === 'is_active'" :direction="$sortField === 'is_active' ? $sortDirection : null" wire:click="sortBy('is_active')">
-                        Status
-                    </flux:table.sortable>
-                </flux:table.column>
+                <flux:table.column sortable :sorted="$sortField === 'is_active'" :direction="$sortField === 'is_active' ? $sortDirection : null" wire:click="sortBy('is_active')">Status</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
-                @foreach ($users as $user)
-                    <flux:table.row>
+                @forelse ($users as $user)
+                    <flux:table.row wire:key="user-{{ $user->id }}">
                         <flux:table.cell class="text-zinc-400 text-xs">
                             {{ $users->firstItem() + $loop->index }}
                         </flux:table.cell>
@@ -200,15 +182,42 @@ new class extends Component {
                                     <flux:menu.item icon="pencil" wire:navigate href="{{ route('users.edit', $user->id) }}">Edit</flux:menu.item>
                                     @endcan
                                     @can('users.delete')
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="deleteUser({{ $user->id }})" wire:confirm="Are you sure you want to delete this user?">Delete</flux:menu.item>
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $user->id }})">Delete</flux:menu.item>
                                     @endcan
                                 </flux:menu>
                             </flux:dropdown>
                             @endcan
                         </flux:table.cell>
                     </flux:table.row>
-                @endforeach
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="9" class="py-10 text-center">
+                            <div class="flex flex-col items-center gap-1 text-zinc-400 dark:text-zinc-500">
+                                <flux:icon.users class="size-8 opacity-40" />
+                                <flux:text>No users found.</flux:text>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
             </flux:table.rows>
         </flux:table>
     </flux:card>
+
+    <flux:modal name="delete-user" class="min-w-88">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Delete user?</flux:heading>
+                <flux:text class="mt-2">
+                    You're about to delete <strong>{{ $deletingLabel }}</strong>. This action cannot be undone.
+                </flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" icon="trash" wire:click="delete">Delete user</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

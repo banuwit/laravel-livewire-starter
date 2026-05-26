@@ -1,6 +1,7 @@
 ﻿<?php
 
 use App\Models\Company;
+use Flux\Flux;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -36,7 +37,7 @@ new class extends Component {
             'is_active' => $this->is_active,
         ]);
 
-        session()->flash('success', 'Company created successfully.');
+        Flux::toast(variant: 'success', text: 'Company created successfully.');
         $this->redirectRoute('companies.index', navigate: true);
     }
 };
@@ -61,6 +62,7 @@ new class extends Component {
             <flux:card class="space-y-5">
                 <div>
                     <flux:heading size="lg">Company Info</flux:heading>
+                    <flux:text variant="muted" size="sm">Basic company details.</flux:text>
                 </div>
                 <flux:separator />
 
@@ -80,7 +82,10 @@ new class extends Component {
 
         <div class="flex flex-col gap-6">
             <flux:card class="space-y-5">
-                <flux:heading size="lg">Status</flux:heading>
+                <div>
+                    <flux:heading size="lg">Status</flux:heading>
+                    <flux:text variant="muted" size="sm">Operational state.</flux:text>
+                </div>
                 <flux:separator />
                 <flux:checkbox wire:model="is_active" label="Active" description="Company is operational" />
             </flux:card>

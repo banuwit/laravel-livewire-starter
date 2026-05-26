@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
             $table->string('name');
+            $table->enum('type', ['headquarter', 'branch'])->default('branch');
             $table->string('code')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();

@@ -4,13 +4,13 @@ use App\Models\User;
 use Livewire\Livewire;
 
 test('profile page is displayed', function () {
-    $this->actingAs($user = User::factory()->withEmployee()->create());
+    $this->actingAs($user = User::factory()->withProfile()->create());
 
     $this->get(route('profile.edit'))->assertOk();
 });
 
 test('account information can be updated', function () {
-    $user = User::factory()->withEmployee()->create();
+    $user = User::factory()->withProfile()->create();
 
     $this->actingAs($user);
 
@@ -29,7 +29,7 @@ test('account information can be updated', function () {
 });
 
 test('email verification status is unchanged when email address is unchanged', function () {
-    $user = User::factory()->withEmployee()->create();
+    $user = User::factory()->withProfile()->create();
 
     $this->actingAs($user);
 
@@ -43,20 +43,20 @@ test('email verification status is unchanged when email address is unchanged', f
     expect($user->refresh()->email_verified_at)->not->toBeNull();
 });
 
-test('employee profile can be updated', function () {
-    $user = User::factory()->withEmployee()->create();
+test('profile data can be updated', function () {
+    $user = User::factory()->withProfile()->create();
 
     $this->actingAs($user);
 
     $response = Livewire::test('pages::settings.profile')
-        ->set('name', 'Updated Name')
-        ->set('gender', 'female')
-        ->call('updateEmployee');
+        ->set('religion', 'islam')
+        ->set('marital_status', 'single')
+        ->call('updateProfileData');
 
     $response->assertHasNoErrors();
 
-    expect($user->employee->refresh()->name)->toEqual('Updated Name');
-    expect($user->employee->refresh()->gender)->toEqual('female');
+    expect($user->profile->refresh()->religion)->toEqual('islam');
+    expect($user->profile->refresh()->marital_status)->toEqual('single');
 });
 
 test('user can delete their account', function () {

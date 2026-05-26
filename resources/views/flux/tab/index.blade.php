@@ -12,9 +12,9 @@
     :aria-selected="tab === @js($name)"
     :class="{
         // Default (underline)
-        'inline-flex items-center gap-2 px-1 py-2 -mb-px font-medium border-b-2 transition cursor-pointer': variant === 'default',
-        'border-zinc-900 dark:border-white text-zinc-900 dark:text-white': variant === 'default' && tab === @js($name),
-        'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white': variant === 'default' && tab !== @js($name),
+        'inline-flex items-center gap-2 px-1 py-2 -mb-px font-medium border-b-2 transition cursor-pointer text-sm': variant === 'default',
+        'border-[var(--color-accent)] text-[var(--color-accent-content,var(--color-accent))]': variant === 'default' && tab === @js($name),
+        'border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white': variant === 'default' && tab !== @js($name),
 
         // Segmented
         'inline-flex items-center gap-2 px-3 py-1.5 font-medium rounded-md transition cursor-pointer': variant === 'segmented',

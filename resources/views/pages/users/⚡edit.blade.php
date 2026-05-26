@@ -7,6 +7,7 @@ use App\Models\Country;
 use App\Models\Province;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
@@ -31,19 +32,15 @@ new class extends Component {
     public ?int $company_id = null;
     public ?int $branch_id = null;
 
-    // HR (employee record)
-    public ?string $employee_number = null;
+    // Profile data record
+    public ?string $identity_number = null;
     public ?string $religion = null;
-    public ?string $birth_place = null;
     public ?string $birth_date = null;
     public ?string $marital_status = null;
     public ?string $address = null;
     public ?int $country_id = null;
     public ?int $province_id = null;
     public ?int $city_id = null;
-    public ?string $employee_type = null;
-    public ?string $join_date = null;
-    public ?string $end_date = null;
 
     public ?int $selectedRole = null;
 
@@ -65,19 +62,15 @@ new class extends Component {
         $this->company_id = $user->company_id;
         $this->branch_id = $user->branch_id;
 
-        $employee = $user->employee;
-        $this->employee_number = $employee?->employee_number;
-        $this->religion = $employee?->religion;
-        $this->birth_place = $employee?->birth_place;
-        $this->birth_date = $employee?->birth_date?->format('Y-m-d');
-        $this->marital_status = $employee?->marital_status;
-        $this->address = $employee?->address;
-        $this->country_id = $employee?->country_id;
-        $this->province_id = $employee?->province_id;
-        $this->city_id = $employee?->city_id;
-        $this->employee_type = $employee?->employee_type;
-        $this->join_date = $employee?->join_date?->format('Y-m-d');
-        $this->end_date = $employee?->end_date?->format('Y-m-d');
+        $profile = $user->profile;
+        $this->identity_number = $profile?->identity_number;
+        $this->religion = $profile?->religion;
+        $this->birth_date = $profile?->birth_date?->format('Y-m-d');
+        $this->marital_status = $profile?->marital_status;
+        $this->address = $profile?->address;
+        $this->country_id = $profile?->country_id;
+        $this->province_id = $profile?->province_id;
+        $this->city_id = $profile?->city_id;
 
         $this->companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
         $this->branches = $this->company_id ? Branch::where('company_id', $this->company_id)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
@@ -87,8 +80,8 @@ new class extends Component {
         $this->allRoles = Role::whereNotIn('name', ['superadmin'])->select('id', 'name')->get()->toArray();
         $this->selectedRole = $user->roles->first()?->id;
 
-        // Auto-open HR tab if employee data exists
-        if ($user->employee) {
+        // Auto-open HR tab if profile data exists
+        if ($user->profile) {
             $this->activeTab = 'hr';
         }
     }
@@ -115,7 +108,7 @@ new class extends Component {
 
     public function rules()
     {
-        $employeeId = $this->user->employee?->id;
+        $profileId = $this->user->profile?->id;
         return [
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->user->id],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
@@ -125,18 +118,14 @@ new class extends Component {
             'gender' => ['nullable', 'in:male,female'],
             'company_id' => ['nullable', 'exists:companies,id'],
             'branch_id' => ['nullable', 'exists:branches,id'],
-            'employee_number' => ['nullable', 'string', 'max:50', 'unique:employees,employee_number,' . $employeeId],
+            'identity_number' => ['nullable', 'string', 'max:50', 'unique:profiles,identity_number,' . $profileId],
             'religion' => ['nullable', 'string', 'max:50'],
-            'birth_place' => ['nullable', 'string', 'max:100'],
             'birth_date' => ['nullable', 'date'],
             'marital_status' => ['nullable', 'in:single,married,divorced,widowed'],
             'address' => ['nullable', 'string', 'max:500'],
             'country_id' => ['nullable', 'exists:countries,id'],
             'province_id' => ['nullable', 'exists:provinces,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
-            'employee_type' => ['nullable', 'in:permanent,contract,intern,parttime'],
-            'join_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:join_date'],
             'selectedRole' => ['nullable', 'exists:roles,id'],
         ];
     }
@@ -160,25 +149,21 @@ new class extends Component {
             }
             $this->user->update($userData);
 
-            $hasHrData = $this->employee_number || $this->birth_date || $this->marital_status
-                || $this->employee_type || $this->join_date || $this->religion || $this->address;
+            $hasHrData = $this->identity_number || $this->birth_date || $this->marital_status
+                || $this->religion || $this->address;
 
             if ($hasHrData) {
-                $this->user->employee()->updateOrCreate(
+                $this->user->profile()->updateOrCreate(
                     ['user_id' => $this->user->id],
                     [
-                        'employee_number' => $this->employee_number,
+                        'identity_number' => $this->identity_number,
                         'religion' => $this->religion,
-                        'birth_place' => $this->birth_place,
                         'birth_date' => $this->birth_date,
                         'marital_status' => $this->marital_status,
                         'address' => $this->address,
                         'country_id' => $this->country_id,
                         'province_id' => $this->province_id,
                         'city_id' => $this->city_id,
-                        'employee_type' => $this->employee_type,
-                        'join_date' => $this->join_date,
-                        'end_date' => $this->end_date,
                     ]
                 );
             }
@@ -193,7 +178,7 @@ new class extends Component {
             }
         });
 
-        session()->flash('success', 'User updated successfully.');
+        Flux::toast(variant: 'success', text: 'User updated successfully.');
         $this->redirectRoute('users.index', navigate: true);
     }
 
@@ -204,7 +189,7 @@ new class extends Component {
 
     private function hrFields(): array
     {
-        return ['employee_number', 'religion', 'birth_place', 'birth_date', 'marital_status', 'address', 'country_id', 'province_id', 'city_id'];
+        return ['identity_number', 'religion', 'birth_date', 'marital_status', 'address', 'country_id', 'province_id', 'city_id'];
     }
 };
 ?>
@@ -228,7 +213,7 @@ new class extends Component {
         {{-- Left: Tabs --}}
         <div class="lg:col-span-2">
             <flux:tab.group default="{{ $activeTab }}">
-                <flux:tab.list>
+                <flux:tabs>
                     <flux:tab name="profile">
                         Profile
                         @if ($errors->hasAny($this->profileFields()))
@@ -236,15 +221,15 @@ new class extends Component {
                         @endif
                     </flux:tab>
                     <flux:tab name="hr">
-                        Employee Data
-                        @if ($user->employee)
+                        Profile Data
+                        @if ($user->profile)
                             <flux:badge color="emerald" size="sm" class="ml-1">Linked</flux:badge>
                         @endif
                         @if ($errors->hasAny($this->hrFields()))
                             <span class="inline-flex size-2 rounded-full bg-red-500 ml-1 mb-1"></span>
                         @endif
                     </flux:tab>
-                </flux:tab.list>
+                </flux:tabs>
 
                 {{-- Tab: Profile --}}
                 <flux:tab.panel name="profile" class="flex flex-col gap-6 pt-4">
@@ -280,28 +265,28 @@ new class extends Component {
                     </flux:card>
                 </flux:tab.panel>
 
-                {{-- Tab: Employee Data --}}
+                {{-- Tab: Profile Data --}}
                 <flux:tab.panel name="hr" class="flex flex-col gap-6 pt-4">
                     <flux:card class="space-y-5">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <flux:heading size="lg">Employee Data</flux:heading>
+                                <flux:heading size="lg">Profile Data</flux:heading>
                                 <flux:text variant="muted" size="sm">
-                                    @if ($user->employee)
-                                        Employee record linked. Update HR details below.
+                                    @if ($user->profile)
+                                        Profile record linked. Update details below.
                                     @else
-                                        No employee record yet. Fill in any field to create one automatically.
+                                        No profile record yet. Fill in any field to create one automatically.
                                     @endif
                                 </flux:text>
                             </div>
-                            @if (!$user->employee)
+                            @if (!$user->profile)
                                 <flux:badge color="zinc" size="sm" class="shrink-0">Optional</flux:badge>
                             @endif
                         </div>
                         <flux:separator />
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <flux:input wire:model="employee_number" label="Employee Number" placeholder="e.g. EMP-001" />
+                            <flux:input wire:model="identity_number" label="Identity Number" placeholder="e.g. KTP / ID number" />
                             <flux:select wire:model="religion" variant="listbox" label="Religion" searchable clearable placeholder="Choose religion">
                                 <flux:select.option value="islam">Islam</flux:select.option>
                                 <flux:select.option value="kristen">Christian</flux:select.option>
@@ -311,14 +296,13 @@ new class extends Component {
                             </flux:select>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <flux:select wire:model="marital_status" variant="listbox" label="Marital Status" clearable placeholder="Choose status">
                                 <flux:select.option value="single">Single</flux:select.option>
                                 <flux:select.option value="married">Married</flux:select.option>
                                 <flux:select.option value="divorced">Divorced</flux:select.option>
                                 <flux:select.option value="widowed">Widowed</flux:select.option>
                             </flux:select>
-                            <flux:input wire:model="birth_place" label="Birth Place" placeholder="City of birth" />
                             <flux:date-picker label="Birth Date" :value="$birth_date" x-on:input="$wire.birth_date = $event.detail" />
                         </div>
 
@@ -365,23 +349,6 @@ new class extends Component {
                         <flux:select.option value="{{ $branch['id'] }}">{{ $branch['name'] }}</flux:select.option>
                     @endforeach
                 </flux:select>
-            </flux:card>
-
-            {{-- Employment --}}
-            <flux:card class="space-y-5">
-                <div>
-                    <flux:heading size="lg">Employment</flux:heading>
-                    <flux:text variant="muted" size="sm">Contract & dates.</flux:text>
-                </div>
-                <flux:separator />
-                <flux:select wire:model="employee_type" variant="listbox" label="Employment Type" clearable placeholder="Choose type">
-                    <flux:select.option value="permanent">Permanent</flux:select.option>
-                    <flux:select.option value="contract">Contract</flux:select.option>
-                    <flux:select.option value="intern">Intern</flux:select.option>
-                    <flux:select.option value="parttime">Part-time</flux:select.option>
-                </flux:select>
-                <flux:date-picker label="Join Date" :value="$join_date" x-on:input="$wire.join_date = $event.detail" />
-                <flux:date-picker label="End Date" description="Leave blank for permanent" :value="$end_date" x-on:input="$wire.end_date = $event.detail" />
             </flux:card>
 
             {{-- Status --}}

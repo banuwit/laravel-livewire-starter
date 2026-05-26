@@ -18,10 +18,6 @@ return new class extends Migration
             $table->string('code', 8)->nullable();
             $table->timestamps();
         });
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('province_id')->nullable()->constrained('provinces')->nullOnDelete();
-        });
     }
 
     /**

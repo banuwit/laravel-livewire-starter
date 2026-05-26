@@ -1,5 +1,6 @@
 <?php
 
+use Flux\Flux;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 use Livewire\WithPagination;
@@ -12,7 +13,9 @@ new class extends Component
     public string $search = '';
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
-    public ?int $roleToDelete = null;
+
+    public ?int $deletingId = null;
+    public string $deletingLabel = '';
 
     public function sortBy(string $field): void
     {
@@ -32,19 +35,23 @@ new class extends Component
         }
     }
 
-    public function deleteRole(): void
+    public function confirmDelete(int $id): void
     {
-        if ($this->roleToDelete) {
-            Role::findById($this->roleToDelete)?->delete();
-            $this->dispatch('toast', message: 'Role deleted successfully');
-            $this->resetPage();
-        }
-        $this->roleToDelete = null;
+        $role = Role::findById($id);
+        $this->deletingId = $id;
+        $this->deletingLabel = $role->name;
+        Flux::modal('delete-role')->show();
     }
 
-    public function setRoleToDelete(?int $id): void
+    public function delete(): void
     {
-        $this->roleToDelete = $id;
+        if ($this->deletingId) {
+            Role::findById($this->deletingId)?->delete();
+            Flux::toast(variant: 'success', text: 'Role deleted.');
+        }
+        $this->reset('deletingId', 'deletingLabel');
+        Flux::modal('delete-role')->close();
+        $this->resetPage();
     }
 
     public function render()
@@ -64,53 +71,68 @@ new class extends Component
         <flux:button wire:navigate href="{{ route('roles.create') }}" variant="primary" icon="plus">Add New</flux:button>
     </div>
     <flux:card class="space-y-4" size="sm">
-        <div class="flex items-center justify-between gap-4">
-            <div class="w-72">
-                <flux:input icon="magnifying-glass" placeholder="Search name..." wire:model.live.debounce.300ms="search" clearable />
-            </div>
+        <div class="w-full sm:w-72">
+            <flux:input icon="magnifying-glass" placeholder="Search name..." wire:model.live.debounce.300ms="search" clearable />
         </div>
         <flux:table :paginate="$roles" pagination:scroll-to>
             <flux:table.columns>
-                <flux:table.column sticky>#</flux:table.column>
-                <flux:table.column sortable="name" :sort="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">Name</flux:table.column>
-                <flux:table.column sortable="guard_name" :sort="$sortField === 'guard_name' ? $sortDirection : null" wire:click="sortBy('guard_name')">Guard Name</flux:table.column>
-                <flux:table.column sortable="created_at" :sort="$sortField === 'created_at' ? $sortDirection : null" wire:click="sortBy('created_at')">Created At</flux:table.column>
-                <flux:table.column sticky class="text-right">Actions</flux:table.column>
+                <flux:table.column>#</flux:table.column>
+                <flux:table.column sortable :sorted="$sortField === 'name'" :direction="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">Name</flux:table.column>
+                <flux:table.column sortable :sorted="$sortField === 'guard_name'" :direction="$sortField === 'guard_name' ? $sortDirection : null" wire:click="sortBy('guard_name')">Guard Name</flux:table.column>
+                <flux:table.column sortable :sorted="$sortField === 'created_at'" :direction="$sortField === 'created_at' ? $sortDirection : null" wire:click="sortBy('created_at')">Created At</flux:table.column>
+                <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
             <flux:table.rows>
-                @foreach ($roles as $role)
-                    <flux:table.row>
-                        <flux:table.cell>{{ $loop->iteration }}</flux:table.cell>
-                        <flux:table.cell>{{ $role->name }}</flux:table.cell>
-                        <flux:table.cell>{{ $role->guard_name }}</flux:table.cell>
+                @forelse ($roles as $role)
+                    <flux:table.row wire:key="role-{{ $role->id }}">
+                        <flux:table.cell class="text-zinc-400 text-xs">{{ $roles->firstItem() + $loop->index }}</flux:table.cell>
+                        <flux:table.cell variant="strong">{{ ucfirst($role->name) }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge color="zinc" size="sm">{{ $role->guard_name }}</flux:badge>
+                        </flux:table.cell>
                         <flux:table.cell>{{ $role->created_at->format('Y-m-d') }}</flux:table.cell>
-                        <flux:table.cell class="text-right">
-                            @if($role->name != 'superadmin')
-                                <flux:button wire:navigate href="{{ route('roles.edit', $role) }}" variant="ghost" icon="pencil" size="sm" />
-                                <flux:modal.trigger name="delete-role">
-                                    <flux:button variant="ghost" icon="trash" size="sm" wire:click="setRoleToDelete({{ $role->id }})" />
-                                </flux:modal.trigger>
+                        <flux:table.cell>
+                            @if ($role->name !== 'superadmin')
+                                <flux:dropdown>
+                                    <flux:button icon="ellipsis-vertical" variant="ghost" size="sm" square />
+                                    <flux:menu>
+                                        <flux:menu.item icon="pencil" wire:navigate href="{{ route('roles.edit', $role) }}">Edit</flux:menu.item>
+                                        <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $role->id }})">Delete</flux:menu.item>
+                                    </flux:menu>
+                                </flux:dropdown>
+                            @else
+                                <flux:badge color="amber" size="sm" icon="lock-closed">Protected</flux:badge>
                             @endif
                         </flux:table.cell>
                     </flux:table.row>
-                @endforeach
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5" class="py-10 text-center">
+                            <div class="flex flex-col items-center gap-1 text-zinc-400 dark:text-zinc-500">
+                                <flux:icon.shield-check class="size-8 opacity-40" />
+                                <flux:text>No roles found.</flux:text>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
             </flux:table.rows>
         </flux:table>
     </flux:card>
-    <flux:modal name="delete-role">
+
+    <flux:modal name="delete-role" class="min-w-88">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">Delete Role</flux:heading>
+                <flux:heading size="lg">Delete role?</flux:heading>
                 <flux:text class="mt-2">
-                    Are you sure you want to delete this role?
+                    You're about to delete <strong>{{ ucfirst($deletingLabel) }}</strong>. This action cannot be undone.
                 </flux:text>
-                <div class="flex gap-2">
-                    <flux:spacer />
-                    <flux:modal.close>
-                        <flux:button variant="ghost">Cancel</flux:button>
-                    </flux:modal.close>
-                    <flux:button wire:click="deleteRole()" wire:navigate variant="danger">Delete</flux:button>
-                </div>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" icon="trash" wire:click="delete">Delete role</flux:button>
             </div>
         </div>
     </flux:modal>

@@ -2,6 +2,7 @@
 
 use App\Models\Branch;
 use App\Models\Company;
+use Flux\Flux;
 use Livewire\Component;
 
 new class extends Component {
@@ -9,6 +10,7 @@ new class extends Component {
 
     public ?int $company_id = null;
     public string $name = '';
+    public string $type = 'branch';
     public ?string $code = null;
     public ?string $phone = null;
     public ?string $email = null;
@@ -22,6 +24,7 @@ new class extends Component {
         $this->branch = $branch;
         $this->company_id = $branch->company_id;
         $this->name = $branch->name;
+        $this->type = $branch->type;
         $this->code = $branch->code;
         $this->phone = $branch->phone;
         $this->email = $branch->email;
@@ -36,6 +39,7 @@ new class extends Component {
         return [
             'company_id' => ['required', 'exists:companies,id'],
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:headquarter,branch'],
             'code' => ['nullable', 'string', 'max:50'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -51,6 +55,7 @@ new class extends Component {
         $this->branch->update([
             'company_id' => $this->company_id,
             'name' => $this->name,
+            'type' => $this->type,
             'code' => $this->code,
             'phone' => $this->phone,
             'email' => $this->email,
@@ -58,7 +63,7 @@ new class extends Component {
             'is_active' => $this->is_active,
         ]);
 
-        session()->flash('success', 'Branch updated successfully.');
+        Flux::toast(variant: 'success', text: 'Branch updated successfully.');
         $this->redirectRoute('branches.index', navigate: true);
     }
 };
@@ -81,13 +86,21 @@ new class extends Component {
     <form id="save-form" wire:submit="save" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 flex flex-col gap-6">
             <flux:card class="space-y-5">
-                <flux:heading size="lg">Branch Info</flux:heading>
+                <div>
+                    <flux:heading size="lg">Branch Info</flux:heading>
+                    <flux:text variant="muted" size="sm">Branch identity and contact.</flux:text>
+                </div>
                 <flux:separator />
 
                 <flux:select wire:model="company_id" variant="listbox" label="Company" searchable :placeholder="__('Choose company')" required>
                     @foreach ($companies as $company)
                         <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
                     @endforeach
+                </flux:select>
+
+                <flux:select wire:model="type" variant="listbox" label="Type" required>
+                    <flux:select.option value="headquarter">Headquarter</flux:select.option>
+                    <flux:select.option value="branch">Branch</flux:select.option>
                 </flux:select>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -106,7 +119,10 @@ new class extends Component {
 
         <div class="flex flex-col gap-6">
             <flux:card class="space-y-5">
-                <flux:heading size="lg">Status</flux:heading>
+                <div>
+                    <flux:heading size="lg">Status</flux:heading>
+                    <flux:text variant="muted" size="sm">Operational state.</flux:text>
+                </div>
                 <flux:separator />
                 <flux:checkbox wire:model="is_active" label="Active" description="Branch is operational" />
             </flux:card>

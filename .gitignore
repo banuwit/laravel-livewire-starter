@@ -21,3 +21,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+#faithamins.blade.php
+resources/views/faithamins.blade.php

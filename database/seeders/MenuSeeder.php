@@ -10,7 +10,7 @@ class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        // ---------- 1. Dashboard ----------
+        // ---------- 1. General ----------
         $dashboard = $this->menu('dashboard', [
             'name' => 'Dashboard',
             'icon' => 'home',
@@ -20,8 +20,37 @@ class MenuSeeder extends Seeder
         ]);
         $this->attachPerms($dashboard, ['dashboard.view']);
 
-        // ---------- 2. Sales ----------
-        $sales = $this->group('sales', 'Sales', 'shopping-bag', 2);
+        $users = $this->menu('users', [
+            'name' => 'Users',
+            'icon' => 'user',
+            'route_name' => 'users.index',
+            'route_pattern' => 'users.*',
+            'sort_order' => 2,
+        ]);
+        $this->attachPerms($users, [
+            'users.view', 'users.create', 'users.edit', 'users.delete', 'users.assign_roles',
+        ]);
+
+        // ---------- 2. Master Data ----------
+        $masterData = $this->group('master-data', 'Master Data', 'cog-6-tooth', 3);
+
+        $companies = $this->child('companies', 'Companies', 'building-office', $masterData, 1, 'companies.index', 'companies.*');
+        $this->attachPerms($companies, [
+            'companies.view', 'companies.create', 'companies.edit', 'companies.delete',
+        ]);
+
+        $branches = $this->child('branches', 'Branches', 'building-office-2', $masterData, 2, 'branches.index', 'branches.*');
+        $this->attachPerms($branches, [
+            'branches.view', 'branches.create', 'branches.edit', 'branches.delete',
+        ]);
+
+        $parameters = $this->child('parameters', 'Parameters', 'adjustments-horizontal', $masterData, 3, 'parameters.index', 'parameters.*');
+        $this->attachPerms($parameters, [
+            'parameters.view', 'parameters.create', 'parameters.edit', 'parameters.delete',
+        ]);
+
+        // ---------- 3. Sales ----------
+        $sales = $this->group('sales', 'Sales', 'shopping-bag', 4);
 
         $salesQuot = $this->child('sales-quotations', 'Quotations', 'document-text', $sales, 1);
         $this->attachPerms($salesQuot, [
@@ -46,8 +75,8 @@ class MenuSeeder extends Seeder
             'customers.view', 'customers.create', 'customers.edit', 'customers.delete',
         ]);
 
-        // ---------- 3. Purchasing ----------
-        $purchasing = $this->group('purchasing', 'Purchasing', 'shopping-cart', 3);
+        // ---------- 4. Purchasing ----------
+        $purchasing = $this->group('purchasing', 'Purchasing', 'shopping-cart', 5);
 
         $pr = $this->child('purchase-requests', 'Purchase Requests', 'document-plus', $purchasing, 1);
         $this->attachPerms($pr, [
@@ -72,8 +101,8 @@ class MenuSeeder extends Seeder
             'suppliers.view', 'suppliers.create', 'suppliers.edit', 'suppliers.delete',
         ]);
 
-        // ---------- 4. Inventory ----------
-        $inventory = $this->group('inventory', 'Inventory', 'cube', 4);
+        // ---------- 5. Inventory ----------
+        $inventory = $this->group('inventory', 'Inventory', 'cube', 6);
 
         $products = $this->child('products', 'Products', 'tag', $inventory, 1);
         $this->attachPerms($products, [
@@ -103,8 +132,8 @@ class MenuSeeder extends Seeder
             'stock_adjustments.edit', 'stock_adjustments.delete', 'stock_adjustments.approve',
         ]);
 
-        // ---------- 5. Transaction ----------
-        $transaction = $this->group('transaction', 'Transaction', 'arrow-path', 5);
+        // ---------- 6. Transaction ----------
+        $transaction = $this->group('transaction', 'Transaction', 'arrow-path', 7);
 
         $trx = $this->child('transactions', 'Journal Entries', 'book-open', $transaction, 1);
         $this->attachPerms($trx, [
@@ -124,8 +153,8 @@ class MenuSeeder extends Seeder
             'receipts.delete', 'receipts.post',
         ]);
 
-        // ---------- 6. CRM ----------
-        $crm = $this->group('crm', 'CRM', 'sparkles', 6);
+        // ---------- 7. CRM ----------
+        $crm = $this->group('crm', 'CRM', 'sparkles', 8);
 
         $leads = $this->child('leads', 'Leads', 'bolt', $crm, 1);
         $this->attachPerms($leads, [
@@ -153,8 +182,8 @@ class MenuSeeder extends Seeder
             'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.delete',
         ]);
 
-        // ---------- 7. Reports ----------
-        $reports = $this->group('reports', 'Reports', 'chart-bar', 7);
+        // ---------- 8. Reports ----------
+        $reports = $this->group('reports', 'Reports', 'chart-bar', 9);
 
         $rs = $this->child('reports-sales', 'Sales Report', 'chart-bar-square', $reports, 1);
         $this->attachPerms($rs, ['reports_sales.view', 'reports_sales.export']);
@@ -174,36 +203,20 @@ class MenuSeeder extends Seeder
         $rf = $this->child('reports-financial', 'Financial Report', 'currency-dollar', $reports, 6);
         $this->attachPerms($rf, ['reports_financial.view', 'reports_financial.export']);
 
-        // ---------- 8. Administration ----------
-        $admin = $this->group('administration', 'Administration', 'cog-6-tooth', 90);
+        // ---------- 9. Configuration ----------
+        $configuration = $this->group('configuration', 'Configuration', 'cog-6-tooth', 10);
 
-        $users = $this->child('users', 'Users', 'user', $admin, 1, 'users.index', 'users.*');
-        $this->attachPerms($users, [
-            'users.view', 'users.create', 'users.edit', 'users.delete', 'users.assign_roles',
-        ]);
-
-
-        $companies = $this->child('companies', 'Companies', 'building-office', $admin, 3, 'companies.index', 'companies.*');
-        $this->attachPerms($companies, [
-            'companies.view', 'companies.create', 'companies.edit', 'companies.delete',
-        ]);
-
-        $branches = $this->child('branches', 'Branches', 'building-office-2', $admin, 4, 'branches.index', 'branches.*');
-        $this->attachPerms($branches, [
-            'branches.view', 'branches.create', 'branches.edit', 'branches.delete',
-        ]);
-
-        $roles = $this->child('roles', 'Roles', 'lock-closed', $admin, 5, 'roles.index', 'roles.*');
+        $roles = $this->child('roles', 'Roles', 'lock-closed', $configuration, 1, 'roles.index', 'roles.*');
         $this->attachPerms($roles, [
             'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
         ]);
 
-        $menus = $this->child('menus', 'Menus', 'bars-3', $admin, 6, 'menus.index', 'menus.*');
+        $menus = $this->child('menus', 'Menus', 'bars-3', $configuration, 2, 'menus.index', 'menus.*');
         $this->attachPerms($menus, [
             'menus.view', 'menus.create', 'menus.edit', 'menus.delete',
         ]);
 
-        // ---------- 9. Nav user ----------
+        // ---------- 10. Nav user ----------
         Menu::firstOrCreate(['slug' => 'my-profile'], [
             'name' => 'My Profile',
             'icon' => 'identification',

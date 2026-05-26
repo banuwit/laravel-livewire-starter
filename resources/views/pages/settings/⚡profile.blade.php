@@ -1,6 +1,6 @@
 <?php
 
-use App\Concerns\EmployeeValidationRules;
+use App\Concerns\ProfileDataValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\City;
 use App\Models\Country;
@@ -13,7 +13,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Profile settings')] class extends Component {
-    use ProfileValidationRules, EmployeeValidationRules;
+    use ProfileValidationRules, ProfileDataValidationRules;
 
     // Account
     public string $email = '';
@@ -23,9 +23,9 @@ new #[Title('Profile settings')] class extends Component {
     public ?string $phonenumber = null;
     public ?string $gender = null;
 
-    // Employee HR data
+    // Profile data
+    public ?string $identity_number = null;
     public ?string $religion = null;
-    public ?string $birth_place = null;
     public ?string $birth_date = null;
     public ?string $marital_status = null;
     public ?string $address = null;
@@ -47,15 +47,15 @@ new #[Title('Profile settings')] class extends Component {
 
         $this->countries = Country::orderBy('name')->get()->toArray();
 
-        if ($employee = $user->employee) {
-            $this->religion = $employee->religion;
-            $this->birth_place = $employee->birth_place;
-            $this->birth_date = $employee->birth_date?->format('Y-m-d');
-            $this->marital_status = $employee->marital_status;
-            $this->address = $employee->address;
-            $this->country_id = $employee->country_id;
-            $this->province_id = $employee->province_id;
-            $this->city_id = $employee->city_id;
+        if ($profile = $user->profile) {
+            $this->identity_number = $profile->identity_number;
+            $this->religion = $profile->religion;
+            $this->birth_date = $profile->birth_date?->format('Y-m-d');
+            $this->marital_status = $profile->marital_status;
+            $this->address = $profile->address;
+            $this->country_id = $profile->country_id;
+            $this->province_id = $profile->province_id;
+            $this->city_id = $profile->city_id;
 
             $this->provinces = $this->country_id ? Province::where('country_id', $this->country_id)->orderBy('name')->get()->toArray() : [];
             $this->cities = $this->province_id ? City::where('province_id', $this->province_id)->orderBy('name')->get()->toArray() : [];
@@ -93,19 +93,19 @@ new #[Title('Profile settings')] class extends Component {
         Flux::toast(variant: 'success', text: __('Profile updated.'));
     }
 
-    public function updateEmployee(): void
+    public function updateProfileData(): void
     {
         $user = Auth::user();
-        if (! $user->employee) {
+        if (! $user->profile) {
             return;
         }
 
-        $employee = $user->employee;
-        $validated = $this->validate($this->employeeRules($employee->id));
+        $profile = $user->profile;
+        $validated = $this->validate($this->profileDataRules($profile->id));
 
-        $employee->update($validated);
+        $profile->update($validated);
 
-        Flux::toast(variant: 'success', text: __('Employee data updated.'));
+        Flux::toast(variant: 'success', text: __('Profile data updated.'));
     }
 
     public function resendVerificationNotification(): void
@@ -123,9 +123,9 @@ new #[Title('Profile settings')] class extends Component {
     }
 
     #[Computed]
-    public function hasEmployee(): bool
+    public function hasProfile(): bool
     {
-        return Auth::user()->employee !== null;
+        return Auth::user()->profile !== null;
     }
 
     #[Computed]
@@ -197,29 +197,31 @@ new #[Title('Profile settings')] class extends Component {
 
         <flux:separator class="my-6" />
 
-        {{-- Section B: Employee HR Data --}}
+        {{-- Section B: Profile Data --}}
         <div class="w-full">
-            <flux:heading size="lg">{{ __('Employee Data') }}</flux:heading>
-            <flux:text variant="muted" size="sm">{{ __('HR details linked to your employee record.') }}</flux:text>
+            <flux:heading size="lg">{{ __('Profile Data') }}</flux:heading>
+            <flux:text variant="muted" size="sm">{{ __('Additional personal data linked to your profile record.') }}</flux:text>
 
-            @if ($this->hasEmployee)
-                <form wire:submit="updateEmployee" class="mt-4 space-y-6">
-                    <flux:select wire:model="religion" variant="listbox" :label="__('Religion')" searchable clearable :placeholder="__('Choose religion')">
-                        <flux:select.option value="islam">Islam</flux:select.option>
-                        <flux:select.option value="kristen">Christian</flux:select.option>
-                        <flux:select.option value="hindu">Hindu</flux:select.option>
-                        <flux:select.option value="buddhist">Buddhist</flux:select.option>
-                        <flux:select.option value="other">Other</flux:select.option>
-                    </flux:select>
+            @if ($this->hasProfile)
+                <form wire:submit="updateProfileData" class="mt-4 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <flux:input wire:model="identity_number" :label="__('Identity Number')" :placeholder="__('e.g. KTP / ID number')" />
+                        <flux:select wire:model="religion" variant="listbox" :label="__('Religion')" searchable clearable :placeholder="__('Choose religion')">
+                            <flux:select.option value="islam">Islam</flux:select.option>
+                            <flux:select.option value="kristen">Christian</flux:select.option>
+                            <flux:select.option value="hindu">Hindu</flux:select.option>
+                            <flux:select.option value="buddhist">Buddhist</flux:select.option>
+                            <flux:select.option value="other">Other</flux:select.option>
+                        </flux:select>
+                    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <flux:select wire:model="marital_status" variant="listbox" :label="__('Marital Status')" clearable :placeholder="__('Choose status')">
                             <flux:select.option value="single">Single</flux:select.option>
                             <flux:select.option value="married">Married</flux:select.option>
                             <flux:select.option value="divorced">Divorced</flux:select.option>
                             <flux:select.option value="widowed">Widowed</flux:select.option>
                         </flux:select>
-                        <flux:input wire:model="birth_place" :label="__('Birth Place')" :placeholder="__('City of birth')" />
                         <flux:input wire:model="birth_date" type="date" :label="__('Birth Date')" />
                     </div>
 
@@ -243,15 +245,15 @@ new #[Title('Profile settings')] class extends Component {
                         </flux:select>
                     </div>
 
-                    <flux:button variant="primary" type="submit" data-test="update-employee-button">
-                        {{ __('Save employee data') }}
+                    <flux:button variant="primary" type="submit" data-test="update-profile-data-button">
+                        {{ __('Save profile data') }}
                     </flux:button>
                 </form>
             @else
                 <div class="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 py-12">
                     <flux:icon.identification class="size-16 text-zinc-300 dark:text-zinc-600" />
-                    <flux:heading size="md">{{ __('No employee data') }}</flux:heading>
-                    <flux:text variant="muted" size="sm">{{ __('Your account is not linked to an employee record yet.') }}</flux:text>
+                    <flux:heading size="md">{{ __('No profile data') }}</flux:heading>
+                    <flux:text variant="muted" size="sm">{{ __('Your account is not linked to a profile record yet.') }}</flux:text>
                 </div>
             @endif
         </div>

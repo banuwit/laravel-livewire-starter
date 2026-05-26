@@ -11,6 +11,8 @@
 
             <flux:spacer />
 
+            <x-theme-toggle class="mr-2" />
+
             <x-desktop-user-menu />
         </flux:header>
 

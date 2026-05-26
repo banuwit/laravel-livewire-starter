@@ -1,5 +1,6 @@
 ﻿<?php
 
+use Flux\Flux;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
@@ -54,7 +55,7 @@ new class extends Component
             'guard_name' => $this->guard_name,
         ]);
         $role->syncPermissions($this->selectedPermission);
-        session()->flash('success', 'Role created successfully.');
+        Flux::toast(variant: 'success', text: 'Role created successfully.');
         $this->redirectRoute('roles.index', navigate: true);
     }
 
@@ -94,13 +95,13 @@ new class extends Component
                 @endphp
 
                 <flux:tab.group>
-                    <flux:tab.list>
+                    <flux:tabs>
                         @foreach ($menuGroups as $layout => $menus)
                             <flux:tab name="{{ $layout }}">
                                 {{ $layoutLabels[$layout] ?? \Illuminate\Support\Str::headline($layout) }}
                             </flux:tab>
                         @endforeach
-                    </flux:tab.list>
+                    </flux:tabs>
 
                     @foreach ($menuGroups as $layout => $menus)
                         <flux:tab.panel name="{{ $layout }}" class="space-y-2 pr-1">

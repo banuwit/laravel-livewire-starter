@@ -20,9 +20,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('city_id')->nullable()->constrained('cities')->nullOnDelete();
-        });
     }
 
     /**

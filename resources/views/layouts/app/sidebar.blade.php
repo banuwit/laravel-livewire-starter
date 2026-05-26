@@ -24,6 +24,8 @@
 
             <flux:spacer />
 
+            <x-theme-toggle class="hidden lg:block mr-2" />
+
             <x-desktop-user-menu class="hidden lg:block" />
         </flux:header>
 
@@ -136,6 +138,8 @@
             <flux:sidebar.collapse />
 
             <flux:spacer />
+
+            <x-theme-toggle class="mr-2" />
 
             <x-desktop-user-menu />
         </flux:header>

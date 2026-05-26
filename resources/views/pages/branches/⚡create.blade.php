@@ -2,6 +2,7 @@
 
 use App\Models\Branch;
 use App\Models\Company;
+use Flux\Flux;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -11,6 +12,9 @@ new class extends Component {
 
     #[Validate('required|string|max:255')]
     public string $name = '';
+
+    #[Validate('required|in:headquarter,branch')]
+    public string $type = 'branch';
 
     #[Validate('nullable|string|max:50')]
     public ?string $code = null;
@@ -41,6 +45,7 @@ new class extends Component {
         Branch::create([
             'company_id' => $this->company_id,
             'name' => $this->name,
+            'type' => $this->type,
             'code' => $this->code,
             'phone' => $this->phone,
             'email' => $this->email,
@@ -48,7 +53,7 @@ new class extends Component {
             'is_active' => $this->is_active,
         ]);
 
-        session()->flash('success', 'Branch created successfully.');
+        Flux::toast(variant: 'success', text: 'Branch created successfully.');
         $this->redirectRoute('branches.index', navigate: true);
     }
 };
@@ -71,13 +76,21 @@ new class extends Component {
     <form id="save-form" wire:submit="save" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 flex flex-col gap-6">
             <flux:card class="space-y-5">
-                <flux:heading size="lg">Branch Info</flux:heading>
+                <div>
+                    <flux:heading size="lg">Branch Info</flux:heading>
+                    <flux:text variant="muted" size="sm">Branch identity and contact.</flux:text>
+                </div>
                 <flux:separator />
 
                 <flux:select wire:model="company_id" variant="listbox" label="Company" searchable :placeholder="__('Choose company')" required>
                     @foreach ($companies as $company)
                         <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
                     @endforeach
+                </flux:select>
+
+                <flux:select wire:model="type" variant="listbox" label="Type" required>
+                    <flux:select.option value="headquarter">Headquarter</flux:select.option>
+                    <flux:select.option value="branch">Branch</flux:select.option>
                 </flux:select>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -96,7 +109,10 @@ new class extends Component {
 
         <div class="flex flex-col gap-6">
             <flux:card class="space-y-5">
-                <flux:heading size="lg">Status</flux:heading>
+                <div>
+                    <flux:heading size="lg">Status</flux:heading>
+                    <flux:text variant="muted" size="sm">Operational state.</flux:text>
+                </div>
                 <flux:separator />
                 <flux:checkbox wire:model="is_active" label="Active" description="Branch is operational" />
             </flux:card>
