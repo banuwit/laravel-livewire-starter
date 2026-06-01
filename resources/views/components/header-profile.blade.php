@@ -34,17 +34,4 @@ $classes = Flux::classes()
             <flux:avatar :attributes="$avatarAttributes" />
         <?php endif; ?>
     </div>
-
-    <?php if ($name): ?>
-        <div class="mx-2 flex flex-col min-w-0 text-start">
-            <span class="text-sm dark:text-white/80 group-hover:text-zinc-800 dark:group-hover:text-white font-medium truncate leading-tight">
-                {{ $name }}
-            </span>
-            <?php if ($role): ?>
-                <span class="text-xs text-zinc-400 dark:text-white/40 truncate leading-tight">
-                    {{ $role }}
-                </span>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
 </button>

@@ -3,17 +3,17 @@
 namespace Database\Factories;
 
 use App\Models\Parameter;
+use App\Models\Province;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-/**
- * @extends Factory<User>
- */
 class UserFactory extends Factory
 {
     protected static ?string $password;
+
+    protected $model = User::class;
 
     public function definition(): array
     {
@@ -24,7 +24,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'is_active' => true,
             'phonenumber' => fake()->phoneNumber(),
-            'gender_id' => Parameter::group('gender')->inRandomOrder()->value('id'),
+            'gender' => fake()->randomElement(['male', 'female', 'other']),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
@@ -51,7 +51,7 @@ class UserFactory extends Factory
     public function withProfile(array $attributes = []): static
     {
         return $this->afterCreating(function (User $user) use ($attributes) {
-            $province = \App\Models\Province::inRandomOrder()->first();
+            $province = Province::inRandomOrder()->first();
 
             $user->profile()->create(array_merge([
                 'identity_number' => fake()->numerify('################'),
@@ -61,9 +61,7 @@ class UserFactory extends Factory
                 'address' => fake()->address(),
                 'country_id' => $province?->country_id,
                 'province_id' => $province?->id,
-                'city_id' => $province
-                    ? \App\Models\City::where('province_id', $province->id)->inRandomOrder()->value('id')
-                    : null,
+                'city_id' => $province?->cities()->inRandomOrder()->value('id'),
             ], $attributes));
         });
     }

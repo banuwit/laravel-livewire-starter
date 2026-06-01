@@ -216,6 +216,11 @@ class MenuSeeder extends Seeder
             'menus.view', 'menus.create', 'menus.edit', 'menus.delete',
         ]);
 
+        $actLogs = $this->child('activity-logs', 'Activity Logs', 'clock', $configuration, 3, 'activity-logs.index', 'activity-logs.*');
+        $this->attachPerms($actLogs, [
+            'activity_logs.view', 'activity_logs.export',
+        ]);
+
         // ---------- 10. Nav user ----------
         Menu::firstOrCreate(['slug' => 'my-profile'], [
             'name' => 'My Profile',

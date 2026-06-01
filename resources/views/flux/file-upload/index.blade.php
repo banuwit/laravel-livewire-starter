@@ -44,7 +44,7 @@
             return (bytes / 1048576).toFixed(1) + ' MB';
         }
     }"
-    {{ $attributes }}
+    {{ $attributes->whereDoesntStartWith('wire:') }}
 >
     <div
         @dragover.prevent="isDragging = true"
@@ -78,6 +78,7 @@
             @if($multiple) multiple @endif
             @if($accept) accept="{{ $accept }}" @endif
             @change="handleInput($event)"
+            {{ $attributes->whereStartsWith('wire:') }}
             class="hidden"
         />
     </div>

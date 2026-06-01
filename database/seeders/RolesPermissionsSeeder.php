@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class RolesPermissionsSeeder extends Seeder
@@ -69,6 +68,9 @@ class RolesPermissionsSeeder extends Seeder
             'reports_transaction'    => ['view', 'export'],
             'reports_crm'            => ['view', 'export'],
             'reports_financial'      => ['view', 'export'],
+
+            // Activity Logs (view-only + export)
+            'activity_logs'          => ['view', 'export'],
         ];
 
         $allPermissions = [];
@@ -97,6 +99,7 @@ class RolesPermissionsSeeder extends Seeder
             ->givePermissionTo($permsFor([
                 'dashboard',
                 'users', 'roles', 'menus', 'profiles', 'parameters', 'companies', 'branches',
+                'activity_logs',
                 'reports_sales', 'reports_purchasing', 'reports_inventory',
                 'reports_transaction', 'reports_crm', 'reports_financial',
             ]));

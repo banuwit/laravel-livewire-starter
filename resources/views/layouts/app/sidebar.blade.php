@@ -26,6 +26,8 @@
 
             <x-theme-toggle class="hidden lg:block mr-2" />
 
+            <x-notification-bell class="hidden lg:block mr-2" />
+
             <x-desktop-user-menu class="hidden lg:block" />
         </flux:header>
 
@@ -36,13 +38,6 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <!-- <flux:sidebar.item icon="document-text" href="#">Kanban</flux:sidebar.item>
-                <flux:sidebar.item icon="calendar" href="#">Calendar</flux:sidebar.item>
-                <flux:sidebar.group expandable heading="Favorites" icon="star" class="grid">
-                    <flux:sidebar.item href="#">Marketing site</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Android app</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Brand guidelines</flux:sidebar.item>
-                </flux:sidebar.group> -->
                 @php
                     $sidebarMenus = \App\Models\Menu::with(['children.permissions', 'permissions'])
                         ->roots()
@@ -79,20 +74,24 @@
                                 @endphp
                                 @if ($viewPerm)
                                     @can($viewPerm->name)
+                                        <div @class(['bg-slate-800/30 dark:bg-zinc-800 rounded' => $childCurrent])>
+                                            <flux:sidebar.item
+                                                :href="$childHref"
+                                                :current="$childCurrent"
+                                                wire:navigate>
+                                                {{ $child->name }}
+                                            </flux:sidebar.item>
+                                        </div>
+                                    @endcan
+                                @else
+                                    <div @class(['bg-slate-800/30 dark:bg-zinc-800 rounded' => $childCurrent])>
                                         <flux:sidebar.item
                                             :href="$childHref"
                                             :current="$childCurrent"
                                             wire:navigate>
                                             {{ $child->name }}
                                         </flux:sidebar.item>
-                                    @endcan
-                                @else
-                                    <flux:sidebar.item
-                                        :href="$childHref"
-                                        :current="$childCurrent"
-                                        wire:navigate>
-                                        {{ $child->name }}
-                                    </flux:sidebar.item>
+                                    </div>
                                 @endif
                             @endforeach
                         </flux:sidebar.group>
@@ -107,6 +106,18 @@
                         @endphp
                         @if ($viewPerm)
                             @can($viewPerm->name)
+                                <div @class(['bg-slate-800/30 dark:bg-zinc-800 rounded' => $rootCurrent])>
+                                    <flux:sidebar.item
+                                        :icon="$menu->icon"
+                                        :href="$rootHref"
+                                        :current="$rootCurrent"
+                                        wire:navigate>
+                                        {{ $menu->name }}
+                                    </flux:sidebar.item>
+                                </div>
+                            @endcan
+                        @else
+                            <div @class(['bg-slate-800/30 dark:bg-zinc-800 rounded' => $rootCurrent])>
                                 <flux:sidebar.item
                                     :icon="$menu->icon"
                                     :href="$rootHref"
@@ -114,15 +125,7 @@
                                     wire:navigate>
                                     {{ $menu->name }}
                                 </flux:sidebar.item>
-                            @endcan
-                        @else
-                            <flux:sidebar.item
-                                :icon="$menu->icon"
-                                :href="$rootHref"
-                                :current="$rootCurrent"
-                                wire:navigate>
-                                {{ $menu->name }}
-                            </flux:sidebar.item>
+                            </div>
                         @endif
                     @endif
                 @endforeach
@@ -140,6 +143,8 @@
             <flux:spacer />
 
             <x-theme-toggle class="mr-2" />
+
+            <x-notification-bell class="mr-2" />
 
             <x-desktop-user-menu />
         </flux:header>

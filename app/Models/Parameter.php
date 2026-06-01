@@ -38,6 +38,45 @@ class Parameter extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $model) {
+            $userId = self::getDefaultUserId();
+            if ($userId) {
+                $model->created_by = $userId;
+                $model->updated_by = $userId;
+            }
+        });
+
+        static::updating(function (self $model) {
+            $userId = self::getDefaultUserId();
+            if ($userId) {
+                $model->updated_by = $userId;
+            }
+        });
+
+        static::deleting(function (self $model) {
+            if ($model->isForceDeleting()) {
+                return;
+            }
+            $userId = self::getDefaultUserId();
+            if ($userId) {
+                $model->deleted_by = $userId;
+                $model->saveQuietly();
+            }
+        });
+    }
+
+    protected static function getDefaultUserId(): ?int
+    {
+        if (auth()->check()) {
+            return auth()->id();
+        }
+
+        return User::whereHas('roles', fn ($q) => $q->where('name', 'superadmin'))
+            ->first()?->id ?? User::first()?->id;
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

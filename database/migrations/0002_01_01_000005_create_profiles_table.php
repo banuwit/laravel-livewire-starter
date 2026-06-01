@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreignId('country_id')->nullable()->constrained('countries')->nullOnDelete();
             $table->foreignId('province_id')->nullable()->constrained('provinces')->nullOnDelete();
             $table->foreignId('city_id')->nullable()->constrained('cities')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -1,10 +1,7 @@
 <?php
 
-use App\Concerns\ProfileDataValidationRules;
-use App\Concerns\ProfileValidationRules;
-use App\Models\City;
-use App\Models\Country;
-use App\Models\Province;
+use App\Concerns\HasFileUpload;
+use App\Concerns\FileUploadValidationRules;
 use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
@@ -13,99 +10,33 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Profile settings')] class extends Component {
-    use ProfileValidationRules, ProfileDataValidationRules;
+    use HasFileUpload, FileUploadValidationRules;
 
-    // Account
-    public string $email = '';
 
-    // Profile (on user)
-    public string $name = '';
-    public ?string $phonenumber = null;
-    public ?string $gender = null;
-
-    // Profile data
-    public ?string $identity_number = null;
-    public ?string $religion = null;
-    public ?string $birth_date = null;
-    public ?string $marital_status = null;
-    public ?string $address = null;
-    public ?int $country_id = null;
-    public ?int $province_id = null;
-    public ?int $city_id = null;
-
-    public array $countries = [];
-    public array $provinces = [];
-    public array $cities = [];
-
-    public function mount(): void
+    public function updateAvatar(): void
     {
-        $user = Auth::user();
-        $this->email = $user->email;
-        $this->name = $user->name ?? '';
-        $this->phonenumber = $user->phonenumber;
-        $this->gender = $user->gender;
+        $this->validate($this->imageUploadRules(), $this->imageUploadMessages());
 
-        $this->countries = Country::orderBy('name')->get()->toArray();
-
-        if ($profile = $user->profile) {
-            $this->identity_number = $profile->identity_number;
-            $this->religion = $profile->religion;
-            $this->birth_date = $profile->birth_date?->format('Y-m-d');
-            $this->marital_status = $profile->marital_status;
-            $this->address = $profile->address;
-            $this->country_id = $profile->country_id;
-            $this->province_id = $profile->province_id;
-            $this->city_id = $profile->city_id;
-
-            $this->provinces = $this->country_id ? Province::where('country_id', $this->country_id)->orderBy('name')->get()->toArray() : [];
-            $this->cities = $this->province_id ? City::where('province_id', $this->province_id)->orderBy('name')->get()->toArray() : [];
-        }
-    }
-
-    public function updatedCountryId($value): void
-    {
-        $this->province_id = null;
-        $this->city_id = null;
-        $this->provinces = $value ? Province::where('country_id', $value)->orderBy('name')->get()->toArray() : [];
-        $this->cities = [];
-    }
-
-    public function updatedProvinceId($value): void
-    {
-        $this->city_id = null;
-        $this->cities = $value ? City::where('province_id', $value)->orderBy('name')->get()->toArray() : [];
-    }
-
-    public function updateProfile(): void
-    {
-        $user = Auth::user();
-        $validated = $this->validate([
-            ...$this->accountRules($user->id),
-            ...$this->profileRules(),
-        ]);
-
-        $user->fill($validated);
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-        $user->save();
-
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
-    }
-
-    public function updateProfileData(): void
-    {
-        $user = Auth::user();
-        if (! $user->profile) {
+        if (! $this->uploadedFile) {
+            Flux::toast(variant: 'warning', text: __('Please select an image first.'));
             return;
         }
 
-        $profile = $user->profile;
-        $validated = $this->validate($this->profileDataRules($profile->id));
+        Auth::user()
+            ->addMedia($this->uploadedFile)
+            ->toMediaCollection('avatar');
 
-        $profile->update($validated);
+        Auth::user()->refresh();
+        $this->uploadedFile = null;
 
-        Flux::toast(variant: 'success', text: __('Profile data updated.'));
+        Flux::toast(variant: 'success', text: __('Avatar updated.'));
+    }
+
+    public function removeAvatar(): void
+    {
+        Auth::user()->clearMediaCollection('avatar');
+
+        Flux::toast(variant: 'success', text: __('Avatar removed.'));
     }
 
     public function resendVerificationNotification(): void
@@ -148,26 +79,86 @@ new #[Title('Profile settings')] class extends Component {
     <flux:heading class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
     <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Manage your profile and account settings')">
+        {{-- Section: Avatar --}}
+        <div class="my-6 w-full">
+            <flux:heading size="lg">{{ __('Avatar') }}</flux:heading>
+            <flux:text variant="muted" size="sm">{{ __('Upload a profile photo.') }}</flux:text>
+
+            <div class="mt-4 flex items-start gap-6">
+                <flux:avatar
+                    size="xl"
+                    :src="Auth::user()->avatarUrl()"
+                    :name="Auth::user()->displayName()"
+                    :initials="Auth::user()->initials()"
+                    circle
+                />
+
+                <div class="flex flex-col gap-3 flex-1">
+                    <flux:file-upload
+                        wire:model="uploadedFile"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                    />
+
+                    @error('uploadedFile')
+                        <flux:text size="sm" class="!text-red-500">{{ $message }}</flux:text>
+                    @enderror
+
+                    <div class="flex gap-2">
+                        <flux:button
+                            wire:click="updateAvatar"
+                            wire:loading.attr="disabled"
+                            wire:target="uploadedFile,updateAvatar"
+                            variant="primary"
+                            size="sm"
+                        >
+                            <span wire:loading.remove wire:target="uploadedFile,updateAvatar">{{ __('Upload') }}</span>
+                            <span wire:loading wire:target="uploadedFile,updateAvatar">{{ __('Uploading…') }}</span>
+                        </flux:button>
+
+                        @if(Auth::user()->getFirstMedia('avatar'))
+                            <flux:button
+                                wire:click="removeAvatar"
+                                wire:confirm="{{ __('Remove your profile photo?') }}"
+                                variant="ghost"
+                                size="sm"
+                            >
+                                {{ __('Remove') }}
+                            </flux:button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <flux:separator class="my-6" />
+
         {{-- Section A: Profile --}}
         <div class="my-6 w-full">
             <flux:heading size="lg">{{ __('Profile') }}</flux:heading>
             <flux:text variant="muted" size="sm">{{ __('Your personal information and login email.') }}</flux:text>
 
-            <form wire:submit="updateProfile" class="mt-4 space-y-6">
-                <flux:input wire:model="name" :label="__('Full Name')" type="text" required autocomplete="name" />
+            <div class="mt-4 space-y-6">
+                <div>
+                    <flux:label>{{ __('Full Name') }}</flux:label>
+                    <flux:text class="mt-1 font-medium">{{ Auth::user()->name ?? '—' }}</flux:text>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <flux:input wire:model="phonenumber" type="tel" :label="__('Phone Number')" icon="phone" />
-                    <flux:select wire:model="gender" variant="listbox" :label="__('Gender')" clearable :placeholder="__('Choose gender')">
-                        <flux:select.option value="male">Male</flux:select.option>
-                        <flux:select.option value="female">Female</flux:select.option>
-                    </flux:select>
+                    <div>
+                        <flux:label>{{ __('Phone Number') }}</flux:label>
+                        <flux:text class="mt-1 font-medium">{{ Auth::user()->phonenumber ?? '—' }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:label>{{ __('Gender') }}</flux:label>
+                        <flux:text class="mt-1 font-medium">{{ Auth::user()->gender ?? '—' }}</flux:text>
+                    </div>
                 </div>
 
                 <div>
-                    <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+                    <flux:label>{{ __('Email') }}</flux:label>
+                    <flux:text class="mt-1 font-medium">{{ Auth::user()->email }}</flux:text>
                     @if ($this->hasUnverifiedEmail)
-                        <flux:text class="mt-4">
+                        <flux:text class="mt-4 text-amber-600 dark:text-amber-500">
                             {{ __('Your email address is unverified.') }}
                             <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
                                 {{ __('Click here to re-send the verification email.') }}
@@ -188,11 +179,7 @@ new #[Title('Profile settings')] class extends Component {
                         </div>
                     </div>
                 @endif
-
-                <flux:button variant="primary" type="submit" data-test="update-account-button">
-                    {{ __('Save profile') }}
-                </flux:button>
-            </form>
+            </div>
         </div>
 
         <flux:separator class="my-6" />
@@ -203,52 +190,57 @@ new #[Title('Profile settings')] class extends Component {
             <flux:text variant="muted" size="sm">{{ __('Additional personal data linked to your profile record.') }}</flux:text>
 
             @if ($this->hasProfile)
-                <form wire:submit="updateProfileData" class="mt-4 space-y-6">
+                <div class="mt-4 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <flux:input wire:model="identity_number" :label="__('Identity Number')" :placeholder="__('e.g. KTP / ID number')" />
-                        <flux:select wire:model="religion" variant="listbox" :label="__('Religion')" searchable clearable :placeholder="__('Choose religion')">
-                            <flux:select.option value="islam">Islam</flux:select.option>
-                            <flux:select.option value="kristen">Christian</flux:select.option>
-                            <flux:select.option value="hindu">Hindu</flux:select.option>
-                            <flux:select.option value="buddhist">Buddhist</flux:select.option>
-                            <flux:select.option value="other">Other</flux:select.option>
-                        </flux:select>
+                        <div>
+                            <flux:label>{{ __('Identity Number') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">{{ Auth::user()->profile->identity_number ?? '—' }}</flux:text>
+                        </div>
+                        <div>
+                            <flux:label>{{ __('Religion') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">{{ Auth::user()->profile->religion?->name ?? '—' }}</flux:text>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <flux:select wire:model="marital_status" variant="listbox" :label="__('Marital Status')" clearable :placeholder="__('Choose status')">
-                            <flux:select.option value="single">Single</flux:select.option>
-                            <flux:select.option value="married">Married</flux:select.option>
-                            <flux:select.option value="divorced">Divorced</flux:select.option>
-                            <flux:select.option value="widowed">Widowed</flux:select.option>
-                        </flux:select>
-                        <flux:input wire:model="birth_date" type="date" :label="__('Birth Date')" />
+                        <div>
+                            <flux:label>{{ __('Marital Status') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">{{ Auth::user()->profile->maritalStatus?->name ?? '—' }}</flux:text>
+                        </div>
+                        <div>
+                            <flux:label>{{ __('Birth Date') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">
+                                {{ Auth::user()->profile->birth_date?->format('d-m-Y') ?? '—' }}
+                            </flux:text>
+                        </div>
                     </div>
 
-                    <flux:textarea wire:model="address" :label="__('Address')" :placeholder="__('Street, building, etc.')" rows="2" />
+                    <div>
+                        <flux:label>{{ __('Address') }}</flux:label>
+                        <flux:text class="mt-1 font-medium">{{ Auth::user()->profile->address ?? '—' }}</flux:text>
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <flux:select wire:model.live="country_id" variant="listbox" :label="__('Country')" searchable clearable :placeholder="__('Choose country')">
-                            @foreach ($countries as $country)
-                                <flux:select.option value="{{ $country['id'] }}">{{ $country['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:select wire:model.live="province_id" variant="listbox" :label="__('Province')" searchable clearable :disabled="!$country_id" :placeholder="__('Choose province')">
-                            @foreach ($provinces as $province)
-                                <flux:select.option value="{{ $province['id'] }}">{{ $province['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:select wire:model="city_id" variant="listbox" :label="__('City')" searchable clearable :disabled="!$province_id" :placeholder="__('Choose city')">
-                            @foreach ($cities as $city)
-                                <flux:select.option value="{{ $city['id'] }}">{{ $city['name'] }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        <div>
+                            <flux:label>{{ __('Country') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">
+                                {{ Auth::user()->profile->country?->name ?? '—' }}
+                            </flux:text>
+                        </div>
+                        <div>
+                            <flux:label>{{ __('Province') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">
+                                {{ Auth::user()->profile->province?->name ?? '—' }}
+                            </flux:text>
+                        </div>
+                        <div>
+                            <flux:label>{{ __('City') }}</flux:label>
+                            <flux:text class="mt-1 font-medium">
+                                {{ Auth::user()->profile->city?->name ?? '—' }}
+                            </flux:text>
+                        </div>
                     </div>
-
-                    <flux:button variant="primary" type="submit" data-test="update-profile-data-button">
-                        {{ __('Save profile data') }}
-                    </flux:button>
-                </form>
+                </div>
             @else
                 <div class="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 py-12">
                     <flux:icon.identification class="size-16 text-zinc-300 dark:text-zinc-600" />

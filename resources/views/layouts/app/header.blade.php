@@ -13,6 +13,8 @@
 
             <x-theme-toggle class="mr-2" />
 
+            <x-notification-bell class="mr-2" />
+
             <x-desktop-user-menu />
         </flux:header>
 

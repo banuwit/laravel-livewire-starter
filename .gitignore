@@ -3,6 +3,7 @@
 /public/build
 /public/hot
 /public/storage
+/public/media
 /storage/*.key
 /storage/pail
 /vendor
@@ -21,6 +22,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.agents
 
 #faithamins.blade.php
 resources/views/faithamins.blade.php

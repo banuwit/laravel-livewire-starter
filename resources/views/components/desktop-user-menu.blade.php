@@ -9,6 +9,7 @@
         <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
             <flux:avatar
                 size="md"
+                :src="auth()->user()->avatarUrl()"
                 :name="auth()->user()->displayName()"
                 :initials="auth()->user()->initials()"
             />

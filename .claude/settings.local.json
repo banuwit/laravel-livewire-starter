@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(php artisan *)",
-      "WebFetch(domain:fluxui.dev)"
+      "WebFetch(domain:fluxui.dev)",
+      "Bash(composer require *)"
     ]
   }
 }

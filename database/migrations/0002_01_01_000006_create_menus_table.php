@@ -20,6 +20,8 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->string('layout')->default('sidebar');
             $table->boolean('is_active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

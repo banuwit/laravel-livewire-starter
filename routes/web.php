@@ -28,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('menus/{menu}/edit', 'pages::menus.edit')->middleware('permission:menus.edit')->name('menus.edit');
 
     Route::livewire('configurations/parameters', 'pages::configurations.parameters.index')->middleware('permission:parameters.view')->name('parameters.index');
+
+    Route::livewire('activity-logs', 'pages::activity-logs.index')->middleware('permission:activity_logs.view')->name('activity-logs.index');
+
+    Route::livewire('notifications', 'pages::notifications.index')->name('notifications.index');
 });
 
 require __DIR__.'/settings.php';

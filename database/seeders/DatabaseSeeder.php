@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Branch;
 use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
@@ -19,21 +18,19 @@ class DatabaseSeeder extends Seeder
             ParameterSeeder::class,
             RolesPermissionsSeeder::class,
             MenuSeeder::class,
-            CountrySeeder::class,
-            ProvinceSeeder::class,
-            CitySeeder::class,
+            LocationSeeder::class,
         ]);
 
-        $country = Country::first();
-        $province = Province::first();
-        $city = City::first();
+        $country = Country::where('code', 'ID')->first();
+        $province = Province::where('name', 'Jawa Barat')->first();
+        $city = City::where('name', 'Bandung')->first();
 
         $company = Company::create([
-            'name' => 'PT Lite Indonesia',
-            'code' => 'LITE',
-            'phone' => '(021) 123-4567',
-            'email' => 'info@lite.id',
-            'address' => 'Jl. Sudirman No. 1, Jakarta Pusat',
+            'name' => 'WIT. Indonesia',
+            'code' => 'WIT',
+            'phone' => '(022) 123-4567',
+            'email' => 'information@wit.id',
+            'address' => 'Jl. Sukakarya II No.40',
             'is_active' => true,
         ]);
 
@@ -44,20 +41,20 @@ class DatabaseSeeder extends Seeder
         ])->map(fn ($b) => $company->branches()->create(array_merge($b, ['is_active' => true])));
 
         $superadmin = User::factory()->create([
-            'name' => 'Banu Lite',
-            'email' => 'banu@lite.id',
-            'password' => 'testtest',
+            'name' => 'Project Admin',
+            'email' => 'projectadmin@wit.id',
+            'password' => 'demoadmin123*#',
             'phonenumber' => '08123456789',
-            'gender_id' => Parameter::where('code', 'male')->value('id'),
+            'gender' => 'male',
             'company_id' => $company->id,
             'branch_id' => $branches->first()->id,
             'is_active' => true,
         ]);
         $superadmin->profile()->create([
             'religion_id' => Parameter::where('code', 'islam')->value('id'),
-            'country_id' => $country?->id,
-            'province_id' => $province?->id,
-            'city_id' => $city?->id,
+            'country_id' => $country->id,
+            'province_id' => $province->id,
+            'city_id' => $city->id,
         ]);
         $superadmin->assignRole('superadmin');
 
