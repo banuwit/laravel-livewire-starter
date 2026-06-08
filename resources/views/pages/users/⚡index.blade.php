@@ -66,7 +66,7 @@ new class extends Component {
     public function render()
     {
         $users = User::query()
-            ->with(['company', 'branch', 'roles'])
+            ->with(['organization', 'branch', 'roles'])
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
                   ->orWhere('email', 'like', '%' . $this->search . '%');
@@ -114,7 +114,7 @@ new class extends Component {
                 <flux:table.column>#</flux:table.column>
                 <flux:table.column sortable :sorted="$sortField === 'name'" :direction="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">Name</flux:table.column>
                 <flux:table.column>Phone</flux:table.column>
-                <flux:table.column>Company</flux:table.column>
+                <flux:table.column>Organization</flux:table.column>
                 <flux:table.column>Branch</flux:table.column>
                 <flux:table.column>Gender</flux:table.column>
                 <flux:table.column>Role</flux:table.column>
@@ -143,8 +143,8 @@ new class extends Component {
                             </flux:text>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:text size="sm" class="{{ $user->company ? '' : 'text-zinc-300 dark:text-zinc-600' }}">
-                                {{ $user->company?->name ?? '—' }}
+                            <flux:text size="sm" class="{{ $user->organization ? '' : 'text-zinc-300 dark:text-zinc-600' }}">
+                                {{ $user->organization?->name ?? '—' }}
                             </flux:text>
                         </flux:table.cell>
                         <flux:table.cell>

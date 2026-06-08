@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('companies', function (Blueprint $table) {
+        Schema::create('organizations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('code')->nullable()->unique();
@@ -24,16 +24,16 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete()->after('gender');
+            $table->foreignId('organization_id')->nullable()->constrained('organizations')->nullOnDelete()->after('gender');
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('company_id');
+            $table->dropConstrainedForeignId('organization_id');
         });
 
-        Schema::dropIfExists('companies');
+        Schema::dropIfExists('organizations');
     }
 };

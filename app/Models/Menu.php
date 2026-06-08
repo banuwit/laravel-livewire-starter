@@ -5,13 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Menu extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name', 'slug', 'icon', 'route_name', 'route_pattern',
         'parent_id', 'level', 'sort_order', 'layout', 'is_active',
-        'created_by', 'updated_by',
+        'created_by', 'updated_by', 'deleted_by',
     ];
 
     protected $casts = [
@@ -32,6 +35,17 @@ class Menu extends Model
             $userId = self::getDefaultUserId();
             if ($userId) {
                 $model->updated_by = $userId;
+            }
+        });
+
+        static::deleting(function (self $model) {
+            if ($model->isForceDeleting()) {
+                return;
+            }
+            $userId = self::getDefaultUserId();
+            if ($userId) {
+                $model->deleted_by = $userId;
+                $model->saveQuietly();
             }
         });
     }
@@ -74,5 +88,10 @@ class Menu extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

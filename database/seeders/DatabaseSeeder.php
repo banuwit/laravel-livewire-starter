@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\City;
-use App\Models\Company;
+use App\Models\Organization;
 use App\Models\Country;
 use App\Models\Parameter;
 use App\Models\Province;
@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $province = Province::where('name', 'Jawa Barat')->first();
         $city = City::where('name', 'Bandung')->first();
 
-        $company = Company::create([
+        $organization = Organization::create([
             'name' => 'WIT. Indonesia',
             'code' => 'WIT',
             'phone' => '(022) 123-4567',
@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Head Office', 'type' => 'headquarter', 'code' => 'HO', 'address' => 'Jl. Sudirman No. 1, Jakarta Pusat'],
             ['name' => 'Branch Surabaya', 'type' => 'branch', 'code' => 'SBY', 'address' => 'Jl. Pemuda No. 15, Surabaya'],
             ['name' => 'Branch Bandung', 'type' => 'branch', 'code' => 'BDG', 'address' => 'Jl. Asia Afrika No. 8, Bandung'],
-        ])->map(fn ($b) => $company->branches()->create(array_merge($b, ['is_active' => true])));
+        ])->map(fn ($b) => $organization->branches()->create(array_merge($b, ['is_active' => true])));
 
         $superadmin = User::factory()->create([
             'name' => 'Project Admin',
@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
             'password' => 'demoadmin123*#',
             'phonenumber' => '08123456789',
             'gender' => 'male',
-            'company_id' => $company->id,
+            'organization_id' => $organization->id,
             'branch_id' => $branches->first()->id,
             'is_active' => true,
         ]);
@@ -60,7 +60,7 @@ class DatabaseSeeder extends Seeder
 
         User::factory(36)
             ->withProfile()
-            ->state(['company_id' => $company->id, 'branch_id' => $branches->random()->id])
+            ->state(['organization_id' => $organization->id, 'branch_id' => $branches->random()->id])
             ->create()
             ->each(fn ($user) => $user->assignRole('staff'));
     }

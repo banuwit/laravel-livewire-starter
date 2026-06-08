@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
+            $table->foreignId('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->string('name');
             $table->enum('type', ['headquarter', 'branch'])->default('branch');
             $table->string('code')->nullable();
@@ -26,7 +26,7 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete()->after('company_id');
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete()->after('organization_id');
         });
     }
 

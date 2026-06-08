@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Branch;
-use App\Models\Company;
+use App\Models\Organization;
 use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -11,18 +11,18 @@ new class extends Component {
     use WithPagination, WithoutUrlPagination;
 
     public string $search = '';
-    public ?int $company_id = null;
+    public ?int $organization_id = null;
     public string $sortField = 'name';
     public string $sortDirection = 'asc';
 
     public ?int $deletingId = null;
     public string $deletingLabel = '';
 
-    public array $companies = [];
+    public array $organizations = [];
 
     public function mount(): void
     {
-        $this->companies = Company::orderBy('name')->get(['id', 'name'])->toArray();
+        $this->organizations = Organization::orderBy('name')->get(['id', 'name'])->toArray();
     }
 
     public function sortBy(string $field): void
@@ -38,7 +38,7 @@ new class extends Component {
 
     public function updated($property): void
     {
-        if (in_array($property, ['search', 'company_id'])) {
+        if (in_array($property, ['search', 'organization_id'])) {
             $this->resetPage();
         }
     }
@@ -65,11 +65,11 @@ new class extends Component {
     public function render()
     {
         $branches = Branch::query()
-            ->with('company')
+            ->with('organization')
             ->withCount('users')
             ->when($this->search, fn ($q) => $q->where('name', 'like', '%' . $this->search . '%')
                 ->orWhere('code', 'like', '%' . $this->search . '%'))
-            ->when($this->company_id, fn ($q) => $q->where('company_id', $this->company_id))
+            ->when($this->organization_id, fn ($q) => $q->where('organization_id', $this->organization_id))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
 
@@ -90,7 +90,7 @@ new class extends Component {
         <flux:accordion>
             <div class="flex items-center gap-4">
                 <flux:accordion.trigger>
-                    <flux:button square icon="funnel" icon:variant="outline" :variant="$company_id ? 'primary' : 'outline'" />
+                    <flux:button square icon="funnel" icon:variant="outline" :variant="$organization_id ? 'primary' : 'outline'" />
                 </flux:accordion.trigger>
                 <div class="w-72">
                     <flux:input icon="magnifying-glass" placeholder="Search name or code..." wire:model.live.debounce.300ms="search" clearable />
@@ -100,9 +100,9 @@ new class extends Component {
             <flux:accordion.content class="mt-4">
                 <div class="flex gap-3 flex-wrap">
                     <div class="w-56">
-                        <flux:select wire:model.live="company_id" variant="listbox" searchable clearable placeholder="All Companies">
-                            @foreach ($companies as $company)
-                                <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
+                        <flux:select wire:model.live="organization_id" variant="listbox" searchable clearable placeholder="All Organizations">
+                            @foreach ($organizations as $organization)
+                                <flux:select.option value="{{ $organization['id'] }}">{{ $organization['name'] }}</flux:select.option>
                             @endforeach
                         </flux:select>
                     </div>
@@ -113,7 +113,7 @@ new class extends Component {
         <flux:table :paginate="$branches" pagination:scroll-to>
             <flux:table.columns>
                 <flux:table.column>#</flux:table.column>
-                <flux:table.column>Company</flux:table.column>
+                <flux:table.column>Organization</flux:table.column>
                 <flux:table.column sortable :sorted="$sortField === 'name'" :direction="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">Branch Name</flux:table.column>
                 <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Code</flux:table.column>
@@ -129,7 +129,7 @@ new class extends Component {
                     <flux:table.row wire:key="branch-{{ $branch->id }}">
                         <flux:table.cell class="text-zinc-400 text-xs">{{ $branches->firstItem() + $loop->index }}</flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge color="zinc" size="sm">{{ $branch->company->name }}</flux:badge>
+                            <flux:badge color="zinc" size="sm">{{ $branch->organization->name }}</flux:badge>
                         </flux:table.cell>
                         <flux:table.cell variant="strong">{{ $branch->name }}</flux:table.cell>
                         <flux:table.cell>

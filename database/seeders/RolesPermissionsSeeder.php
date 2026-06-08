@@ -24,7 +24,7 @@ class RolesPermissionsSeeder extends Seeder
             'permissions'   => $crud,
             'menus'         => $crud,
             'parameters'    => $crud,
-            'companies'     => $crud,
+            'organizations' => $crud,
             'branches'      => $crud,
 
             // Logs & Activity
@@ -58,7 +58,7 @@ class RolesPermissionsSeeder extends Seeder
         Role::firstOrCreate(['name' => 'administrator', 'guard_name' => 'web'])
             ->givePermissionTo($permsFor([
                 'dashboard',
-                'users', 'roles', 'permissions', 'menus', 'parameters', 'companies', 'branches',
+                'users', 'roles', 'permissions', 'menus', 'parameters', 'organizations', 'branches',
                 'activity_logs',
             ]));
 

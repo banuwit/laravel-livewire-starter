@@ -1,14 +1,14 @@
 ﻿<?php
 
 use App\Models\Branch;
-use App\Models\Company;
+use App\Models\Organization;
 use Flux\Flux;
 use Livewire\Component;
 
 new class extends Component {
     public Branch $branch;
 
-    public ?int $company_id = null;
+    public ?int $organization_id = null;
     public string $name = '';
     public string $type = 'branch';
     public ?string $code = null;
@@ -17,12 +17,12 @@ new class extends Component {
     public ?string $address = null;
     public bool $is_active = true;
 
-    public array $companies = [];
+    public array $organizations = [];
 
     public function mount(Branch $branch): void
     {
         $this->branch = $branch;
-        $this->company_id = $branch->company_id;
+        $this->organization_id = $branch->organization_id;
         $this->name = $branch->name;
         $this->type = $branch->type;
         $this->code = $branch->code;
@@ -31,13 +31,13 @@ new class extends Component {
         $this->address = $branch->address;
         $this->is_active = (bool) $branch->is_active;
 
-        $this->companies = Company::orderBy('name')->get(['id', 'name'])->toArray();
+        $this->organizations = Organization::orderBy('name')->get(['id', 'name'])->toArray();
     }
 
     public function rules(): array
     {
         return [
-            'company_id' => ['required', 'exists:companies,id'],
+            'organization_id' => ['required', 'exists:organizations,id'],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:headquarter,branch'],
             'code' => ['nullable', 'string', 'max:50'],
@@ -53,7 +53,7 @@ new class extends Component {
         $this->validate();
 
         $this->branch->update([
-            'company_id' => $this->company_id,
+            'organization_id' => $this->organization_id,
             'name' => $this->name,
             'type' => $this->type,
             'code' => $this->code,
@@ -92,9 +92,9 @@ new class extends Component {
                 </div>
                 <flux:separator />
 
-                <flux:select wire:model="company_id" variant="listbox" label="Company" searchable :placeholder="__('Choose company')" required>
-                    @foreach ($companies as $company)
-                        <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
+                <flux:select wire:model="organization_id" variant="listbox" label="Organization" searchable :placeholder="__('Choose organization')" required>
+                    @foreach ($organizations as $organization)
+                        <flux:select.option value="{{ $organization['id'] }}">{{ $organization['name'] }}</flux:select.option>
                     @endforeach
                 </flux:select>
 

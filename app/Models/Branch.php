@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-#[Fillable(['company_id', 'name', 'type', 'code', 'phone', 'email', 'address', 'is_active', 'created_by', 'updated_by'])]
+#[Fillable(['organization_id', 'name', 'type', 'code', 'phone', 'email', 'address', 'is_active', 'created_by', 'updated_by'])]
 class Branch extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes;
@@ -61,16 +61,16 @@ class Branch extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'type', 'company_id', 'is_active'])
+            ->logOnly(['name', 'type', 'organization_id', 'is_active'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('model')
             ->setDescriptionForEvent(fn (string $e) => "Branch {$e}");
     }
 
-    public function company()
+    public function organization()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Organization::class);
     }
 
     public function users()

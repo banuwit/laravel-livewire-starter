@@ -33,7 +33,7 @@ new class extends Component {
 
     public array $subjectTypes = [
         'User',
-        'Company',
+        'Organization',
         'Branch',
         'Role',
         'Permission',
@@ -106,7 +106,7 @@ new class extends Component {
             ->when($this->subjectType, function ($q) {
                 $map = [
                     'User'       => \App\Models\User::class,
-                    'Company'    => \App\Models\Company::class,
+                    'Organization' => \App\Models\Organization::class,
                     'Branch'     => \App\Models\Branch::class,
                     'Role'       => \App\Models\Role::class,
                     'Permission' => \App\Models\Permission::class,

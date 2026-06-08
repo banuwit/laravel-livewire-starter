@@ -17,7 +17,7 @@ use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-#[Fillable(['email', 'password', 'is_active', 'name', 'phonenumber', 'gender', 'company_id', 'branch_id', 'created_by', 'updated_by'])]
+#[Fillable(['email', 'password', 'is_active', 'name', 'phonenumber', 'gender', 'organization_id', 'branch_id', 'created_by', 'updated_by'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements HasMedia
 {
@@ -76,7 +76,7 @@ class User extends Authenticatable implements HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'is_active', 'company_id', 'branch_id', 'gender'])
+            ->logOnly(['name', 'email', 'is_active', 'organization_id', 'branch_id', 'gender'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('model')
@@ -115,9 +115,9 @@ class User extends Authenticatable implements HasMedia
         return $this->hasOne(Profile::class);
     }
 
-    public function company()
+    public function organization()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Organization::class);
     }
 
     public function branch()

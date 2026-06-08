@@ -1,14 +1,14 @@
 ﻿<?php
 
 use App\Models\Branch;
-use App\Models\Company;
+use App\Models\Organization;
 use Flux\Flux;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 new class extends Component {
-    #[Validate('required|exists:companies,id')]
-    public ?int $company_id = null;
+    #[Validate('required|exists:organizations,id')]
+    public ?int $organization_id = null;
 
     #[Validate('required|string|max:255')]
     public string $name = '';
@@ -31,11 +31,11 @@ new class extends Component {
     #[Validate('boolean')]
     public bool $is_active = true;
 
-    public array $companies = [];
+    public array $organizations = [];
 
     public function mount(): void
     {
-        $this->companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
+        $this->organizations = Organization::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
     }
 
     public function save(): void
@@ -43,7 +43,7 @@ new class extends Component {
         $this->validate();
 
         Branch::create([
-            'company_id' => $this->company_id,
+            'organization_id' => $this->organization_id,
             'name' => $this->name,
             'type' => $this->type,
             'code' => $this->code,
@@ -64,7 +64,7 @@ new class extends Component {
             <flux:button variant="ghost" icon="arrow-left" size="sm" square wire:navigate href="{{ route('branches.index') }}" />
             <div class="flex flex-col">
                 <flux:heading size="xl">Create Branch</flux:heading>
-                <flux:text variant="muted">Add a new branch under a company.</flux:text>
+                <flux:text variant="muted">Add a new branch under an organization.</flux:text>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -82,9 +82,9 @@ new class extends Component {
                 </div>
                 <flux:separator />
 
-                <flux:select wire:model="company_id" variant="listbox" label="Company" searchable :placeholder="__('Choose company')" required>
-                    @foreach ($companies as $company)
-                        <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
+                <flux:select wire:model="organization_id" variant="listbox" label="Organization" searchable :placeholder="__('Choose organization')" required>
+                    @foreach ($organizations as $organization)
+                        <flux:select.option value="{{ $organization['id'] }}">{{ $organization['name'] }}</flux:select.option>
                     @endforeach
                 </flux:select>
 

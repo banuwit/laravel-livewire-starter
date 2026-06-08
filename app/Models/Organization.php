@@ -10,7 +10,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 #[Fillable(['name', 'code', 'phone', 'email', 'address', 'is_active', 'created_by', 'updated_by'])]
-class Company extends Model
+class Organization extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes;
 
@@ -65,7 +65,7 @@ class Company extends Model
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('model')
-            ->setDescriptionForEvent(fn (string $e) => "Company {$e}");
+            ->setDescriptionForEvent(fn (string $e) => "Organization {$e}");
     }
 
     public function branches()

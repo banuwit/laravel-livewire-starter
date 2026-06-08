@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Company;
+use App\Models\Organization;
 use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -36,42 +36,42 @@ new class extends Component {
 
     public function confirmDelete(int $id): void
     {
-        $company = Company::findOrFail($id);
+        $organization = Organization::findOrFail($id);
         $this->deletingId = $id;
-        $this->deletingLabel = $company->name;
-        Flux::modal('delete-company')->show();
+        $this->deletingLabel = $organization->name;
+        Flux::modal('delete-organization')->show();
     }
 
     public function delete(): void
     {
         if ($this->deletingId) {
-            Company::find($this->deletingId)?->delete();
-            Flux::toast(variant: 'success', text: 'Company deleted.');
+            Organization::find($this->deletingId)?->delete();
+            Flux::toast(variant: 'success', text: 'Organization deleted.');
         }
         $this->reset('deletingId', 'deletingLabel');
-        Flux::modal('delete-company')->close();
+        Flux::modal('delete-organization')->close();
         $this->resetPage();
     }
 
     public function render()
     {
-        $companies = Company::query()
+        $organizations = Organization::query()
             ->withCount(['branches', 'users'])
             ->when($this->search, fn ($q) => $q->where('name', 'like', '%' . $this->search . '%')
                 ->orWhere('code', 'like', '%' . $this->search . '%'))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
 
-        return $this->view(['companies' => $companies]);
+        return $this->view(['organizations' => $organizations]);
     }
 };
 ?>
 
 <div class="flex flex-col gap-4">
     <div class="flex justify-between gap-4">
-        <flux:heading size="xl">Companies</flux:heading>
-        @can('companies.create')
-            <flux:button wire:navigate href="{{ route('companies.create') }}" variant="primary" icon="plus">Add New</flux:button>
+        <flux:heading size="xl">Organizations</flux:heading>
+        @can('organizations.create')
+            <flux:button wire:navigate href="{{ route('organizations.create') }}" variant="primary" icon="plus">Add New</flux:button>
         @endcan
     </div>
 
@@ -80,7 +80,7 @@ new class extends Component {
             <flux:input icon="magnifying-glass" placeholder="Search name or code..." wire:model.live.debounce.300ms="search" clearable />
         </div>
 
-        <flux:table :paginate="$companies" pagination:scroll-to>
+        <flux:table :paginate="$organizations" pagination:scroll-to>
             <flux:table.columns>
                 <flux:table.column>#</flux:table.column>
                 <flux:table.column sortable :sorted="$sortField === 'name'" :direction="$sortField === 'name' ? $sortDirection : null" wire:click="sortBy('name')">Name</flux:table.column>
@@ -94,36 +94,36 @@ new class extends Component {
             </flux:table.columns>
 
             <flux:table.rows>
-                @forelse ($companies as $company)
-                    <flux:table.row wire:key="company-{{ $company->id }}">
-                        <flux:table.cell class="text-zinc-400 text-xs">{{ $companies->firstItem() + $loop->index }}</flux:table.cell>
-                        <flux:table.cell variant="strong">{{ $company->name }}</flux:table.cell>
-                        <flux:table.cell>{{ $company->code ?? '—' }}</flux:table.cell>
-                        <flux:table.cell>{{ $company->phone ?? '—' }}</flux:table.cell>
-                        <flux:table.cell>{{ $company->email ?? '—' }}</flux:table.cell>
+                @forelse ($organizations as $organization)
+                    <flux:table.row wire:key="organization-{{ $organization->id }}">
+                        <flux:table.cell class="text-zinc-400 text-xs">{{ $organizations->firstItem() + $loop->index }}</flux:table.cell>
+                        <flux:table.cell variant="strong">{{ $organization->name }}</flux:table.cell>
+                        <flux:table.cell>{{ $organization->code ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>{{ $organization->phone ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>{{ $organization->email ?? '—' }}</flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge color="blue" size="sm">{{ $company->branches_count }}</flux:badge>
+                            <flux:badge color="blue" size="sm">{{ $organization->branches_count }}</flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge color="violet" size="sm">{{ $company->users_count }}</flux:badge>
+                            <flux:badge color="violet" size="sm">{{ $organization->users_count }}</flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            @if ($company->is_active)
+                            @if ($organization->is_active)
                                 <flux:badge color="emerald" size="sm">Active</flux:badge>
                             @else
                                 <flux:badge color="red" size="sm">Inactive</flux:badge>
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
-                            @canany(['companies.edit', 'companies.delete'])
+                            @canany(['organizations.edit', 'organizations.delete'])
                             <flux:dropdown>
                                 <flux:button icon="ellipsis-vertical" variant="ghost" size="sm" square />
                                 <flux:menu>
-                                    @can('companies.edit')
-                                    <flux:menu.item icon="pencil" wire:navigate href="{{ route('companies.edit', $company->id) }}">Edit</flux:menu.item>
+                                    @can('organizations.edit')
+                                    <flux:menu.item icon="pencil" wire:navigate href="{{ route('organizations.edit', $organization->id) }}">Edit</flux:menu.item>
                                     @endcan
-                                    @can('companies.delete')
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $company->id }})">Delete</flux:menu.item>
+                                    @can('organizations.delete')
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $organization->id }})">Delete</flux:menu.item>
                                     @endcan
                                 </flux:menu>
                             </flux:dropdown>
@@ -135,7 +135,7 @@ new class extends Component {
                         <flux:table.cell colspan="9" class="py-10 text-center">
                             <div class="flex flex-col items-center gap-1 text-zinc-400 dark:text-zinc-500">
                                 <flux:icon.building-office-2 class="size-8 opacity-40" />
-                                <flux:text>No companies found.</flux:text>
+                                <flux:text>No organizations found.</flux:text>
                             </div>
                         </flux:table.cell>
                     </flux:table.row>
@@ -144,10 +144,10 @@ new class extends Component {
         </flux:table>
     </flux:card>
 
-    <flux:modal name="delete-company" class="min-w-88">
+    <flux:modal name="delete-organization" class="min-w-88">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">Delete company?</flux:heading>
+                <flux:heading size="lg">Delete organization?</flux:heading>
                 <flux:text class="mt-2">
                     You're about to delete <strong>{{ $deletingLabel }}</strong>. All its branches will also be deleted. This action cannot be undone.
                 </flux:text>
@@ -157,7 +157,7 @@ new class extends Component {
                 <flux:modal.close>
                     <flux:button variant="ghost">Cancel</flux:button>
                 </flux:modal.close>
-                <flux:button variant="danger" icon="trash" wire:click="delete">Delete company</flux:button>
+                <flux:button variant="danger" icon="trash" wire:click="delete">Delete organization</flux:button>
             </div>
         </div>
     </flux:modal>

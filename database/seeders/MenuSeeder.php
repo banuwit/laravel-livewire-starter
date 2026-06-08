@@ -34,9 +34,9 @@ class MenuSeeder extends Seeder
         // ---------- 2. Master Data ----------
         $masterData = $this->group('master-data', 'Master Data', 'cog-6-tooth', 4);
 
-        $companies = $this->child('companies', 'Companies', 'building-office', $masterData, 1, 'companies.index', 'companies.*');
-        $this->attachPerms($companies, [
-            'companies.view', 'companies.create', 'companies.edit', 'companies.delete',
+        $organizations = $this->child('organizations', 'Organizations', 'building-office', $masterData, 1, 'organizations.index', 'organizations.*');
+        $this->attachPerms($organizations, [
+            'organizations.view', 'organizations.create', 'organizations.edit', 'organizations.delete',
         ]);
 
         $branches = $this->child('branches', 'Branches', 'building-office-2', $masterData, 2, 'branches.index', 'branches.*');

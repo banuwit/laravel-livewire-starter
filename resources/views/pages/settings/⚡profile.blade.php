@@ -14,7 +14,7 @@ new #[Title('Profile settings')] class extends Component {
 
     public function mount(): void
     {
-        Auth::user()->load(['company', 'branch', 'profile.religion', 'profile.maritalStatus', 'profile.country', 'profile.province', 'profile.city']);
+        Auth::user()->load(['organization', 'branch', 'profile.religion', 'profile.maritalStatus', 'profile.country', 'profile.province', 'profile.city']);
     }
 
     public function updateAvatar(): void
@@ -201,10 +201,10 @@ new #[Title('Profile settings')] class extends Component {
                     </flux:text>
                 </div>
 
-                @if (Auth::user()->company || Auth::user()->branch)
+                @if (Auth::user()->organization || Auth::user()->branch)
                     <div>
-                        <flux:label>{{ __('Company') }}</flux:label>
-                        <flux:text class="mt-2 font-medium text-zinc-900 dark:text-zinc-100">{{ Auth::user()->company?->name ?? '—' }}</flux:text>
+                        <flux:label>{{ __('Organization') }}</flux:label>
+                        <flux:text class="mt-2 font-medium text-zinc-900 dark:text-zinc-100">{{ Auth::user()->organization?->name ?? '—' }}</flux:text>
                     </div>
                 @endif
             </div>

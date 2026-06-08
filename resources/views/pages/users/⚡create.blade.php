@@ -2,7 +2,7 @@
 
 use App\Models\Branch;
 use App\Models\City;
-use App\Models\Company;
+use App\Models\Organization;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\Parameter;
@@ -64,8 +64,8 @@ new class extends Component {
     public ?int $marital_status_id = null;
 
     // Organization
-    #[Validate('nullable|exists:companies,id')]
-    public ?int $company_id = null;
+    #[Validate('nullable|exists:organizations,id')]
+    public ?int $organization_id = null;
 
     #[Validate('nullable|exists:branches,id')]
     public ?int $branch_id = null;
@@ -74,7 +74,7 @@ new class extends Component {
     #[Validate('nullable|exists:roles,id')]
     public ?int $selectedRole = null;
 
-    public array $companies = [];
+    public array $organizations = [];
     public array $branches = [];
     public array $countries = [];
     public array $provinces = [];
@@ -85,17 +85,17 @@ new class extends Component {
 
     public function mount()
     {
-        $this->companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
+        $this->organizations = Organization::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
         $this->countries = Country::orderBy('name')->get()->toArray();
         $this->religions = Parameter::group('religion')->active()->orderBy('sort_order')->get(['id', 'value as name'])->toArray();
         $this->maritalStatuses = Parameter::group('marital_status')->active()->orderBy('sort_order')->get(['id', 'value as name'])->toArray();
         $this->allRoles = Role::whereNotIn('name', ['superadmin'])->select('id', 'name')->get()->toArray();
     }
 
-    public function updatedCompanyId($value): void
+    public function updatedOrganizationId($value): void
     {
         $this->branch_id = null;
-        $this->branches = $value ? Branch::where('company_id', $value)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
+        $this->branches = $value ? Branch::where('organization_id', $value)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
     }
 
     public function updatedCountryId($value): void
@@ -124,7 +124,7 @@ new class extends Component {
                 'name' => $this->name,
                 'phonenumber' => $this->phonenumber,
                 'gender' => $this->gender,
-                'company_id' => $this->company_id,
+                'organization_id' => $this->organization_id,
                 'branch_id' => $this->branch_id,
             ]);
 
@@ -262,16 +262,16 @@ new class extends Component {
         <flux:card class="space-y-5">
             <div>
                 <flux:heading size="lg">Organization</flux:heading>
-                <flux:text variant="muted" size="sm">Company & branch assignment.</flux:text>
+                <flux:text variant="muted" size="sm">Organization & branch assignment.</flux:text>
             </div>
             <flux:separator />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <flux:select wire:model.live="company_id" variant="listbox" label="Company" searchable clearable placeholder="Choose company">
-                    @foreach ($companies as $company)
-                        <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
+                <flux:select wire:model.live="organization_id" variant="listbox" label="Organization" searchable clearable placeholder="Choose organization">
+                    @foreach ($organizations as $organization)
+                        <flux:select.option value="{{ $organization['id'] }}">{{ $organization['name'] }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:select wire:model="branch_id" variant="listbox" label="Branch" searchable clearable :disabled="!$company_id" :placeholder="!$company_id ? 'Select company first' : 'Choose branch'">
+                <flux:select wire:model="branch_id" variant="listbox" label="Branch" searchable clearable :disabled="!$organization_id" :placeholder="!$organization_id ? 'Select organization first' : 'Choose branch'">
                     @foreach ($branches as $branch)
                         <flux:select.option value="{{ $branch['id'] }}">{{ $branch['name'] }}</flux:select.option>
                     @endforeach

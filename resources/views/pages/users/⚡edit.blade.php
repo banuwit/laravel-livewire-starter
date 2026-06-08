@@ -2,7 +2,7 @@
 
 use App\Models\Branch;
 use App\Models\City;
-use App\Models\Company;
+use App\Models\Organization;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\Parameter;
@@ -40,13 +40,13 @@ new class extends Component {
     public ?int $marital_status_id = null;
 
     // Organization
-    public ?int $company_id = null;
+    public ?int $organization_id = null;
     public ?int $branch_id = null;
 
     // Role
     public ?int $selectedRole = null;
 
-    public array $companies = [];
+    public array $organizations = [];
     public array $branches = [];
     public array $countries = [];
     public array $provinces = [];
@@ -63,7 +63,7 @@ new class extends Component {
         $this->name = $user->name ?? '';
         $this->phonenumber = $user->phonenumber;
         $this->gender = $user->gender;
-        $this->company_id = $user->company_id;
+        $this->organization_id = $user->organization_id;
         $this->branch_id = $user->branch_id;
 
         $profile = $user->profile;
@@ -76,8 +76,8 @@ new class extends Component {
         $this->province_id = $profile?->province_id;
         $this->city_id = $profile?->city_id;
 
-        $this->companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
-        $this->branches = $this->company_id ? Branch::where('company_id', $this->company_id)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
+        $this->organizations = Organization::where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray();
+        $this->branches = $this->organization_id ? Branch::where('organization_id', $this->organization_id)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
         $this->countries = Country::orderBy('name')->get()->toArray();
         $this->provinces = $this->country_id ? Province::where('country_id', $this->country_id)->orderBy('name')->get()->toArray() : [];
         $this->cities = $this->province_id ? City::where('province_id', $this->province_id)->orderBy('name')->get()->toArray() : [];
@@ -87,10 +87,10 @@ new class extends Component {
         $this->selectedRole = $user->roles->first()?->id;
     }
 
-    public function updatedCompanyId($value): void
+    public function updatedOrganizationId($value): void
     {
         $this->branch_id = null;
-        $this->branches = $value ? Branch::where('company_id', $value)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
+        $this->branches = $value ? Branch::where('organization_id', $value)->where('is_active', true)->orderBy('name')->get(['id', 'name'])->toArray() : [];
     }
 
     public function updatedCountryId($value): void
@@ -117,7 +117,7 @@ new class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'phonenumber' => ['nullable', 'string', 'max:50'],
             'gender' => ['nullable', 'in:male,female'],
-            'company_id' => ['nullable', 'exists:companies,id'],
+            'organization_id' => ['nullable', 'exists:organizations,id'],
             'branch_id' => ['nullable', 'exists:branches,id'],
             'identity_number' => ['nullable', 'string', 'max:50', 'unique:profiles,identity_number,' . $profileId],
             'birth_date' => ['nullable', 'date'],
@@ -142,7 +142,7 @@ new class extends Component {
                 'name' => $this->name,
                 'phonenumber' => $this->phonenumber,
                 'gender' => $this->gender,
-                'company_id' => $this->company_id,
+                'organization_id' => $this->organization_id,
                 'branch_id' => $this->branch_id,
             ];
             if (!empty($this->password)) {
@@ -293,16 +293,16 @@ new class extends Component {
         <flux:card class="space-y-5">
             <div>
                 <flux:heading size="lg">Organization</flux:heading>
-                <flux:text variant="muted" size="sm">Company & branch assignment.</flux:text>
+                <flux:text variant="muted" size="sm">Organization & branch assignment.</flux:text>
             </div>
             <flux:separator />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <flux:select wire:model.live="company_id" variant="listbox" label="Company" searchable clearable placeholder="Choose company">
-                    @foreach ($companies as $company)
-                        <flux:select.option value="{{ $company['id'] }}">{{ $company['name'] }}</flux:select.option>
+                <flux:select wire:model.live="organization_id" variant="listbox" label="Organization" searchable clearable placeholder="Choose organization">
+                    @foreach ($organizations as $organization)
+                        <flux:select.option value="{{ $organization['id'] }}">{{ $organization['name'] }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:select wire:model="branch_id" variant="listbox" label="Branch" searchable clearable :disabled="!$company_id" :placeholder="!$company_id ? 'Select company first' : 'Choose branch'">
+                <flux:select wire:model="branch_id" variant="listbox" label="Branch" searchable clearable :disabled="!$organization_id" :placeholder="!$organization_id ? 'Select organization first' : 'Choose branch'">
                     @foreach ($branches as $branch)
                         <flux:select.option value="{{ $branch['id'] }}">{{ $branch['name'] }}</flux:select.option>
                     @endforeach
