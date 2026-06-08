@@ -23,6 +23,9 @@ yarn-error.log
 /.vscode
 /.zed
 /.agents
+/.claude
+/.github
+.claude
 
 #faithamins.blade.php
 resources/views/faithamins.blade.php
