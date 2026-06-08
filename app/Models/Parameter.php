@@ -12,10 +12,6 @@ class Parameter extends Model
 {
     use SoftDeletes;
 
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
     protected $fillable = [
         'group',
         'code',
@@ -67,7 +63,7 @@ class Parameter extends Model
         });
     }
 
-    protected static function getDefaultUserId(): ?int
+    protected static function getDefaultUserId(): ?string
     {
         if (auth()->check()) {
             return auth()->id();

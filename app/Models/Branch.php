@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,7 +13,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable(['organization_id', 'name', 'type', 'code', 'phone', 'email', 'address', 'is_active', 'created_by', 'updated_by'])]
 class Branch extends Model
 {
-    use HasFactory, LogsActivity, SoftDeletes;
+    use HasFactory, HasUuids, LogsActivity, SoftDeletes;
 
     protected static function booted(): void
     {
@@ -43,7 +44,7 @@ class Branch extends Model
         });
     }
 
-    protected static function getDefaultUserId(): ?int
+    protected static function getDefaultUserId(): ?string
     {
         if (auth()->check()) {
             return auth()->id();

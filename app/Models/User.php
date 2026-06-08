@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -22,7 +23,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class User extends Authenticatable implements HasMedia
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles, LogsActivity, InteractsWithMedia, SoftDeletes;
+    use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable, HasRoles, LogsActivity, InteractsWithMedia, SoftDeletes;
 
     protected static function booted(): void
     {
@@ -53,7 +54,7 @@ class User extends Authenticatable implements HasMedia
         });
     }
 
-    protected static function getDefaultUserId(): ?int
+    protected static function getDefaultUserId(): ?string
     {
         if (auth()->check()) {
             return auth()->id();

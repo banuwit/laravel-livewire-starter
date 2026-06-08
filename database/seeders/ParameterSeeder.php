@@ -4,17 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\Parameter;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class ParameterSeeder extends Seeder
 {
     public function run(): void
     {
         $groups = [
-            'gender' => [
-                ['code' => 'male',   'value' => 'Male'],
-                ['code' => 'female', 'value' => 'Female'],
-            ],
             'religion' => [
                 ['code' => 'islam',              'value' => 'Islam'],
                 ['code' => 'kristen_protestan',  'value' => 'Kristen Protestan'],
@@ -37,7 +32,6 @@ class ParameterSeeder extends Seeder
                 Parameter::firstOrCreate(
                     ['code' => $item['code']],
                     [
-                        'id' => Str::uuid(),
                         'group' => $group,
                         'value' => $item['value'],
                         'is_system' => true,

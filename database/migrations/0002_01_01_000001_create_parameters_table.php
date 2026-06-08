@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('parameters', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('group', 50);
             $table->string('code', 100)->unique();
             $table->string('value', 150);
@@ -20,10 +20,10 @@ return new class extends Migration
             $table->boolean('is_system')->default(false);
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->softDeletes();
-            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('deleted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }
