@@ -8,7 +8,7 @@
 
 {{--
     Requires Chart.js: <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    Usage: <x-flux.chart type="bar" :labels="['Jan','Feb']" :data="[10,20]" />
+    Usage: <flux:chart type="bar" :labels="['Jan','Feb']" :data="[10,20]" />
 --}}
 
 <div {{ $attributes->class('relative w-full') }} style="height: {{ $height }}">

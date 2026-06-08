@@ -13,9 +13,8 @@
         state(cmd) { return document.queryCommandState(cmd); },
     }"
     {{ $attributes->class(['border border-zinc-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-white/5', $disabled ? 'opacity-50 pointer-events-none' : '']) }}
->
     @if($toolbar)
-        <x-flux.editor.toolbar />
+        <flux:editor.toolbar />
     @endif
 
     <div
